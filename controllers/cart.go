@@ -164,32 +164,31 @@ func Checkout(c *gin.Context) {
 	var address models.Address
 	addres := c.Query("addressID")
 
-
 	addressID, _ := strconv.Atoi(addres)
 	PaymentMethod := c.Query("PaymentMethod")
 	cod := "COD"
-
+	razorpay := "Razorpay"
+	notcompRazorpay := "Needs to complete razorpay payment"
 	//getting total cart value
 	i.DB.Raw("select sum(total_price) as total from carts where user_id=?", user.ID).Scan(&totalcartvalue)
-	if PaymentMethod!=""{
-	for _, i := range carts{
-		fmt.Println("entered into carts")
-		pud:=i.User_id
-		Puid, _ := strconv.Atoi(pud)
-		pid := i.Product_id
-		Piid, _ := strconv.Atoi(pid)
-		pname := i.Product_Name
-		pprice := i.Price
-		ordereditems := models.Orderd_Items{UserId: uint(Puid),Product_id: uint(Piid),
-			Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
-			Order_Status: "confirmed",Payment_Status: "pending",Total_amount: totalcartvalue,
+	if PaymentMethod == cod || PaymentMethod == razorpay {
+		for _, i := range carts {
+			fmt.Println("entered into carts")
+			pud := i.User_id
+			Puid, _ := strconv.Atoi(pud)
+			pid := i.Product_id
+			Piid, _ := strconv.Atoi(pid)
+			pname := i.Product_Name
+			pprice := i.Price
+			ordereditems := models.Orderd_Items{UserId: uint(Puid), Product_id: uint(Piid),
+				Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
+				Order_Status: "confirmed", Payment_Status: "pending", Total_amount: totalcartvalue,
+			}
+			initializers.DB.Create(&ordereditems)
+
 		}
-		initializers.DB.Create(&ordereditems)
-
 	}
-}
 
-	
 	//getting details from address
 	record := i.DB.Raw("select address_id, user_id,name,phone_number,pincode,house,area,landmark,city from addresses where user_id=?", user.ID).Scan(&Address)
 	if record.Error != nil {
@@ -199,7 +198,7 @@ func Checkout(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	
+
 	i.DB.Raw("select address_id,user_id,name from addresses where address_id=?", addressID).Scan(&address)
 
 	c.JSON(404, gin.H{
@@ -214,11 +213,47 @@ func Checkout(c *gin.Context) {
 	orderID := "OID" + id
 	fmt.Println(addressID)
 	fmt.Println(address.Address_id)
-	if address.UserId != user.ID{
-		c.JSON(404,gin.H{
-			"msg":"enter valid address id",
+	if address.UserId != user.ID {
+		c.JSON(404, gin.H{
+			"msg": "enter valid address id",
 		})
 	}
+	if PaymentMethod == razorpay && addressID == int(address.Address_id) && address.UserId == user.ID {
+
+		orders := models.Orders{
+			UserId:         user.ID,
+			Address_id:     uint(addressID),
+			Order_id:       orderID,
+			Order_Status:   "pending",
+			PaymentMethod:  razorpay,
+			Payment_Status: notcompRazorpay,
+		}
+
+		result := i.DB.Create(&orders)
+		if result.Error != nil {
+			c.JSON(404, gin.H{"err": result.Error.Error()})
+			c.Abort()
+			return
+
+		}
+		var ordereditems models.Orderd_Items
+
+		i.DB.Raw("update orderd_items set order_status=?,payment_status=?,payment_method=? where user_id=?", "orderplaced", notcompRazorpay, razorpay, user.ID).Scan(&ordereditems)
+		if result.Error == nil {
+			c.JSON(404, gin.H{
+				"msg": "Go to the Razorpay Page for Order completion",
+			})
+			c.Abort()
+			return
+		}
+	} else {
+		c.JSON(404, gin.H{
+			"msg": "select payment method and address",
+		})
+		c.Abort()
+		return
+	}
+
 	if PaymentMethod == cod && addressID == int(address.Address_id) && address.UserId == user.ID {
 
 		orders := models.Orders{
@@ -237,8 +272,10 @@ func Checkout(c *gin.Context) {
 			return
 
 		}
+
 		var ordereditems models.Orderd_Items
-		i.DB.Raw("update orderd_items set order_status=?,payment_method=? where user_id=?","orderplaced",cod,user.ID).Scan(&ordereditems)
+		i.DB.Raw("update orderd_items set order_status=?,payment_method=? where user_id=?", "orderplaced", cod, user.ID).Scan(&ordereditems)
+
 	} else {
 		c.JSON(404, gin.H{
 			"msg": "select payment method and address",

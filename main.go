@@ -31,23 +31,27 @@ func main() {
 		admin.GET("/show-orders", middlewares.AdminAuth(), c.AdminShowOrders)
 		admin.PUT("/cancel-orders", middlewares.AdminAuth(), c.AdminCancelOrders)
 	}
-	user := R.Group("/user").Use(middlewares.UserAuth())
+	user := R.Group("/user")
 	{
 		user.GET("/", c.UserHome)
 
-		user.GET("/addtocart", c.AddToCart)
-		user.GET("/cart", c.Viewcart)
-		user.GET("/checkout", c.Checkout)
-		user.POST("/checkout/add-address", c.CheckOutAddAdress)
-		// user.GET("/razorpay", c.RazorPay)
+		user.GET("/addtocart",middlewares.UserAuth(), c.AddToCart)
+		user.GET("/cart",middlewares.UserAuth(), c.Viewcart)
+		user.GET("/checkout",middlewares.UserAuth(), c.Checkout)
+		user.POST("/checkout/add-address", middlewares.UserAuth(),c.CheckOutAddAdress)
+		//raxorpay related
+		user.GET("/razorpay",middlewares.UserAuth(), c.RazorPay)
+		user.GET("/success",middlewares.UserAuth(), c.Success)
+	
 
-		user.GET("/profile", c.UserprofileGet)
-		user.POST("/profile/edit", c.UserprofilePost)
-		user.GET("/profile/address", c.ShowAddress)
-		user.POST("/profile/add-address", c.AddAddress)
-		user.PUT("/profile/cancel-order", c.Cancelorders)
-		user.GET("/profile/view-order", c.ViewOrders)
-		user.POST("/profile/change-password", c.ForgetPassword)
+
+		user.GET("/profile", middlewares.UserAuth(),c.UserprofileGet)
+		user.POST("/profile/edit", middlewares.UserAuth(),c.UserprofilePost)
+		user.GET("/profile/address", middlewares.UserAuth(),c.ShowAddress)
+		user.POST("/profile/add-address",middlewares.UserAuth(), c.AddAddress)
+		user.PUT("/profile/cancel-order",middlewares.UserAuth(), c.Cancelorders)
+		user.GET("/profile/view-order",middlewares.UserAuth(), c.ViewOrders)
+		user.POST("/profile/change-password",middlewares.UserAuth(), c.ForgetPassword)
 	}
 	R.POST("/signup", c.Signup)
 	R.POST("/login", c.LoginUser)
@@ -55,7 +59,8 @@ func main() {
 	R.POST("/login/otpvalidate", c.ValidateOtp)
 	R.GET("/products", c.ProductsView)
 	R.GET("/products/:id", c.GetProductByID)
-R.GET("/razorpay",c.RazorPay)
+	R.GET("/payment-success",middlewares.UserAuth(), c.RazorpaySuccess)
+
 	R.Run()
 
 }

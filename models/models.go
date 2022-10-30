@@ -53,7 +53,7 @@ type Cart struct {
 	Quantity    uint `json:"quantity" `
 	Total_Price uint `json:"total_price"   `
 }
-type Cartsinfo struct{
+type Cartsinfo struct {
 	gorm.Model
 	User_id      string
 	Product_id   string
@@ -62,7 +62,6 @@ type Cartsinfo struct{
 	Email        string
 	Quantity     string
 	Total_Price  string
-
 }
 type Address struct {
 	Address_id   uint   `json:"address_id" gorm:"primaryKey"  `
@@ -87,28 +86,26 @@ type Product struct {
 	Color        string `json:"color" gorm:"not null"  `
 	Description  string `json:"description"   `
 
-	Brand    Brand
-	Brand_id uint `json:"brand_id" `
-	Cart     Cart
-	Cart_id  uint `json:"cart_id" `
-	Catogory Catogory
+	Brand      Brand
+	Brand_id   uint `json:"brand_id" `
+	Cart       Cart
+	Cart_id    uint `json:"cart_id" `
+	Catogory   Catogory
 	CatogoryID uint
-	ShoeSize ShoeSize
+	ShoeSize   ShoeSize
 	ShoeSizeID uint
 }
 type Brand struct {
 	ID     uint   `json:"id" gorm:"primaryKey"  `
 	Brands string `json:"brands" gorm:"not null"  `
 }
-type Catogory struct{
-	ID uint `json:"id" gorm:"primaryKey"  `
+type Catogory struct {
+	ID       uint `json:"id" gorm:"primaryKey"  `
 	Catogory string
-
 }
-type ShoeSize struct{
-	ID uint `json:"id" gorm:"primaryKey"  `
+type ShoeSize struct {
+	ID   uint `json:"id" gorm:"primaryKey"  `
 	Size uint `json:"size"`
-
 }
 type Otp struct {
 	gorm.Model
@@ -140,5 +137,13 @@ type Orderd_Items struct {
 	Order_Status   string
 	Payment_Status string
 	PaymentMethod  string
-	Total_amount uint
+	Total_amount   uint
+}
+type RazorPay struct {
+	UserID          uint
+	RazorPaymentId  string
+	RazorPayOrderID string
+	Signature       string
+	OrderId         string
+	AmountPaid      string
 }
