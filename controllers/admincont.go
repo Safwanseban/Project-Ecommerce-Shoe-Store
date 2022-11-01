@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Safwanseban/Project-Ecommerce/auth"
@@ -31,12 +32,7 @@ func AdminLogin(c *gin.Context) { // admin login page post
 
 	if UserDb["email"] == u.Email && UserDb["password"] == u.Password && c.Request.Method == "POST" {
 
-		// session, err := i.Store.Get(c.Request, "admin")
-		// session.Values["emails"] = u.Email
-		// fmt.Println(session.Values["emails"])
-		// session.Save(c.Request, c.Writer)
-		// fmt.Println(err)
-		tokenstring, err := auth.GenerateJWT(u.Email)
+		tokenstring, ex, err := auth.GenerateJWT(u.Email) //generating a jwt
 		c.SetCookie("Adminjwt", tokenstring, 3600*24*30, "", "", false, true)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -44,9 +40,10 @@ func AdminLogin(c *gin.Context) { // admin login page post
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"status":  true,
-			"message": "ok",
-			"data":    tokenstring,
+			"status":      true,
+			"message":     "ok",
+			"tokenstring": tokenstring,
+			"expiresAt":   ex,
 		})
 
 	} else {
@@ -78,7 +75,11 @@ func AdminLogout(c *gin.Context) { // adminLogout page
 
 }
 
+var I = 3
+
 func Userdata(c *gin.Context) {
+	I = 5
+	fmt.Println(I)
 	var user []models.User
 	i.DB.Raw("SELECT * FROM users ORDER BY id ASC").Scan(&user)
 	c.JSON(200, gin.H{"user": user})
@@ -96,6 +97,7 @@ func UnBlockUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "Unblocked succesfully"})
 }
 func AdminShowOrders(c *gin.Context) {
+	fmt.Println(I)
 	var ordered_items Orderd_Items
 	record := i.DB.Raw("select user_id,product_id,product_name,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
 	if record.Error != nil {

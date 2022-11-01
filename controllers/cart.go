@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -13,41 +12,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	ErrcantFindProduct    = errors.New("cant find the product")
-	ErrcantDecodeProduct  = errors.New("cant find the product")
-	ErrUserIdnotvalid     = errors.New("this user not valid")
-	ErrcantUpdateUser     = errors.New("cant this product to this cart")
-	ErrCantRemoveItemCart = errors.New("cant remove this item from the cart")
-	ErrCantGetItem        = errors.New("was unable to get the item for the cart")
-	ErrCantBuyCartitem    = errors.New("cannot update the purchase")
-)
-
 var UserEmail string
 
 func AddToCart(c *gin.Context) {
+	userEmail := c.GetString("user")
 	var user models.User
 	var products models.Product
+	i.DB.Raw("select id from users where email=?", userEmail).Scan(&user)
+	var ProdtDetails struct {
+		Product_id uint
+		Quantity   uint
+	}
 
-	UserEmail = c.GetString("user")
+	c.BindJSON(&ProdtDetails)
+	//geting price for setting totalamount
+	i.DB.Raw("select price ,stock from products where product_id=?", ProdtDetails.Product_id).Scan(&products)
+	total := products.Price * ProdtDetails.Quantity
+	prodid := ProdtDetails.Product_id
+	prodqua := ProdtDetails.Quantity
+	cart := models.Cart{
+		ProductID:   ProdtDetails.Product_id,
+		Quantity:    ProdtDetails.Quantity,
+		UserId:      user.ID,
+		Total_Price: total,
+	}
+	var Cart []models.Cart
+	i.DB.Raw("select cart_id,product_id from carts where user_id=?", user.ID).Scan(&Cart) //geting all the cart details associated to user
+	//ranging through the cart inorder to find if the product already exists
+	for _, l := range Cart {
+		fmt.Println("enterd")
+		if l.ProductID == prodid {
+			fmt.Println("in")
+			i.DB.Raw("select quantity from carts where product_id=? and user_id=?", ProdtDetails.Product_id, user.ID).Scan(&Cart)
+			totl := (prodqua + cart.Quantity) * products.Price
+			i.DB.Raw("update carts set quantity=?,total_price=? where product_id=? and user_id=? ", prodqua+cart.Quantity, totl, prodid, user.ID).Scan(&Cart)
 
-	record := i.DB.Raw("select first_name,id from users where email=?", UserEmail).Scan(&user)
+			c.JSON(400, gin.H{
+				"msg": "quantity updated",
+			})
+			c.Abort()
+			return
+		}
+	}
 
-	product := c.Query("product")
-	// Quantity:=c.Query("quantity")
-	i.DB.Raw("select price from products where product_id=?", product).Scan(&products)
-
-	record2 := i.DB.Raw("insert into carts(product_id,user_id,quantity,total_price) values(?,?,1,?)", product, user.ID, products.Price).Scan(&models.Cart{})
-
+	record := i.DB.Create(&cart)
+	// record:=i.DB.Raw("select quantity from carts where product_id=? and userid=?",ProdtDetails.Product_id,user.ID).Scan(&cart)
 	if record.Error != nil {
 		c.JSON(404, gin.H{
-			"error": record.Error.Error(),
+			"err": record.Error.Error(),
 		})
+		c.Abort()
+		return
 	}
-	fmt.Println(record2)
-
-	// var userNum string
-	// i.DB.Raw("select product_name,brands.brands from products join carts on carts.product_id=products.product_id join brands on brands.id=products.brand_id  where products.product_id=? ", product).Scan(&Cart{})
+	i.DB.Raw("select product_name,brands.brands from products join carts on carts.product_id=products.product_id join brands on brands.id=products.brand_id  where products.product_id=? ", ProdtDetails.Product_id).Scan(&cart)
 	c.JSON(200, gin.H{
 		"userId":   user.ID,
 		"Username": user.First_Name,

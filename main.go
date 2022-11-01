@@ -35,32 +35,29 @@ func main() {
 	{
 		user.GET("/", c.UserHome)
 
-		user.GET("/addtocart",middlewares.UserAuth(), c.AddToCart)
-		user.GET("/cart",middlewares.UserAuth(), c.Viewcart)
-		user.GET("/checkout",middlewares.UserAuth(), c.Checkout)
-		user.POST("/checkout/add-address", middlewares.UserAuth(),c.CheckOutAddAdress)
+		user.POST("/addtocart", middlewares.UserAuth(), c.AddToCart)
+		user.GET("/cart", middlewares.UserAuth(), c.Viewcart)
+		user.GET("/checkout", middlewares.UserAuth(), c.Checkout)
+		user.POST("/checkout/add-address", middlewares.UserAuth(), c.CheckOutAddAdress)
 		//raxorpay related
-		user.GET("/razorpay",middlewares.UserAuth(), c.RazorPay)
-		user.GET("/success",middlewares.UserAuth(), c.Success)
-	
+		user.GET("/razorpay", middlewares.UserAuth(), c.RazorPay)
 
-
-		user.GET("/profile", middlewares.UserAuth(),c.UserprofileGet)
-		user.POST("/profile/edit", middlewares.UserAuth(),c.UserprofilePost)
-		user.GET("/profile/address", middlewares.UserAuth(),c.ShowAddress)
-		user.POST("/profile/add-address",middlewares.UserAuth(), c.AddAddress)
-		user.PUT("/profile/cancel-order",middlewares.UserAuth(), c.Cancelorders)
-		user.GET("/profile/view-order",middlewares.UserAuth(), c.ViewOrders)
-		user.POST("/profile/change-password",middlewares.UserAuth(), c.ForgetPassword)
+		user.GET("/profile", middlewares.UserAuth(), c.UserprofileGet)
+		user.POST("/profile/edit", middlewares.UserAuth(), c.UserprofilePost)
+		user.GET("/profile/address", middlewares.UserAuth(), c.ShowAddress)
+		user.POST("/profile/add-address", middlewares.UserAuth(), c.AddAddress)
+		user.PUT("/profile/cancel-order", middlewares.UserAuth(), c.Cancelorders)
+		user.GET("/profile/view-order", middlewares.UserAuth(), c.ViewOrders)
+		user.POST("/profile/change-password", middlewares.UserAuth(), c.ForgetPassword)
 	}
 	R.POST("/signup", c.Signup)
 	R.POST("/login", c.LoginUser)
 	R.POST("/login/otp", c.OtpLog)
-	R.POST("/login/otpvalidate", c.ValidateOtp)
+	R.POST("/login/otpvalidate", c.CheckOtp)
 	R.GET("/products", c.ProductsView)
 	R.GET("/products/:id", c.GetProductByID)
-	R.GET("/payment-success",middlewares.UserAuth(), c.RazorpaySuccess)
-
+	R.GET("/payment-success", middlewares.UserAuth(), c.RazorpaySuccess)
+	R.GET("/success", c.Success)
 	R.Run()
 
 }

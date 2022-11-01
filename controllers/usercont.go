@@ -64,7 +64,7 @@ func LoginUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	tokenString, err := auth.GenerateJWT(user.Email)
+	tokenString,ex ,err := auth.GenerateJWT(user.Email)
 	c.SetCookie("UserAuth", tokenString, 3600*24*30, "", "", false, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -72,7 +72,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString})
+	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString,"expiresAt":ex})
 }
 func UserHome(c *gin.Context) {
 	c.JSON(200, gin.H{"msg": "welcome User Home"})

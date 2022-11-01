@@ -16,7 +16,7 @@ type JWTClaim struct {
 	jwt.StandardClaims
 }
 
-func GenerateJWT(email string) (tokenString string, err error) {
+func GenerateJWT(email string) (tokenString string, ex int64 ,err error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	claims := &JWTClaim{
 		Email:    email,
@@ -27,6 +27,7 @@ func GenerateJWT(email string) (tokenString string, err error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err = token.SignedString(JwtKey)
+	ex=claims.ExpiresAt
 	return
 }
 var P string

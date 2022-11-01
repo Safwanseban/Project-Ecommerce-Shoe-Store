@@ -70,23 +70,27 @@ func RazorpaySuccess(c *gin.Context) {
 	initializers.DB.Create(&Rpay)
 	var cart models.Cart
 	initializers.DB.Raw("delete from carts where user_id=?", userID).Scan(&cart)
-	fmt.Println(userID,orderid)
-	OrderPlaced(userID,orderid)
+	fmt.Println(userID, orderid)
+	OrderPlaced(userID, orderid)
 
+	c.JSON(200, gin.H{
+
+		"status": true,
+	})
 
 }
 func Success(c *gin.Context) {
 	c.HTML(200, "succs.html", nil)
 
 }
-func OrderPlaced(Uid int,orderId string){
-userid:=Uid
-orderid:=orderId
-var orders models.Orders
-initializers.DB.Raw("update orders set order_status=?,payment_status=?,order_id=? where user_id=?","order completed","payment done",orderid,userid).Scan(&orders)
-var ordereditems models.Orderd_Items
+func OrderPlaced(Uid int, orderId string) {
+	userid := Uid
+	orderid := orderId
+	var orders models.Orders
+	initializers.DB.Raw("update orders set order_status=?,payment_status=?,order_id=? where user_id=?", "order completed", "payment done", orderid, userid).Scan(&orders)
+	var ordereditems models.Orderd_Items
 
-initializers.DB.Raw("update orderd_items set order_status=?,payment_status=? where user_id=?", "orderplaced", "Payment Completed",  userid).Scan(&ordereditems)
+	initializers.DB.Raw("update orderd_items set order_status=?,payment_status=? where user_id=?", "orderplaced", "Payment Completed", userid).Scan(&ordereditems)
 
 }
 
