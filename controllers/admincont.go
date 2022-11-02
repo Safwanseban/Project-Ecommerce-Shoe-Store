@@ -53,7 +53,7 @@ func AdminLogin(c *gin.Context) { // admin login page post
 }
 
 func AdminHome(c *gin.Context) {
-
+	fmt.Println("hai")
 	// ok := middlewares.IsAdminloggeedin(c)
 	// if !ok {
 	// 	c.JSON(404, gin.H{
