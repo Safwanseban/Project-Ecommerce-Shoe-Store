@@ -91,7 +91,16 @@ func ProductAdding(c *gin.Context) { //Admin
 		SubPic2: subpic2,
 		Stock:   uint(Stock),
 	}
-	initializers.DB.Create(&product)
+
+	record := initializers.DB.Create(&product)
+	if record.Error != nil {
+		c.JSON(404, gin.H{
+			"msg": "product already exists",
+		})
+		c.Abort()
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"msg": "added succesfully",
 	})

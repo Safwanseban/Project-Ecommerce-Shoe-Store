@@ -50,6 +50,7 @@ func main() {
 		user.GET("/profile/view-order", middlewares.UserAuth(), c.ViewOrders)
 		user.POST("/profile/change-password", middlewares.UserAuth(), c.ForgetPassword)
 	}
+
 	R.POST("/signup", c.Signup)
 	R.POST("/login", c.LoginUser)
 	R.POST("/login/otp", c.OtpLog)

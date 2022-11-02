@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Safwanseban/Project-Ecommerce/initializers"
 	i "github.com/Safwanseban/Project-Ecommerce/initializers"
 	"github.com/Safwanseban/Project-Ecommerce/models"
 	"github.com/gin-gonic/gin"
@@ -180,7 +179,6 @@ func Checkout(c *gin.Context) {
 	var totalcartvalue uint
 	var address models.Address
 	addres := c.Query("addressID")
-
 	addressID, _ := strconv.Atoi(addres)
 	PaymentMethod := c.Query("PaymentMethod")
 	cod := "COD"
@@ -189,19 +187,19 @@ func Checkout(c *gin.Context) {
 	//getting total cart value
 	i.DB.Raw("select sum(total_price) as total from carts where user_id=?", user.ID).Scan(&totalcartvalue)
 	if PaymentMethod == cod || PaymentMethod == razorpay {
-		for _, i := range carts {
+		for _, l := range carts {
 			fmt.Println("entered into carts")
-			pud := i.User_id
+			pud := l.User_id
 			Puid, _ := strconv.Atoi(pud)
-			pid := i.Product_id
+			pid := l.Product_id
 			Piid, _ := strconv.Atoi(pid)
-			pname := i.Product_Name
-			pprice := i.Price
+			pname := l.Product_Name
+			pprice := l.Price
 			ordereditems := models.Orderd_Items{UserId: uint(Puid), Product_id: uint(Piid),
 				Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
 				Order_Status: "confirmed", Payment_Status: "pending", Total_amount: totalcartvalue,
 			}
-			initializers.DB.Create(&ordereditems)
+			i.DB.Create(&ordereditems)
 
 		}
 	}

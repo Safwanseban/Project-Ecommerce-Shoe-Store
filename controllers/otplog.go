@@ -98,7 +98,6 @@ func CheckOtp(c *gin.Context) {
 	var user models.User
 	initializers.DB.First(&user, "phone = ?", Mob)
 
-
 	mobile := "+91" + Mob
 	fromPhone = os.Getenv("FROM_PHONE")
 	fmt.Println(mobile)
@@ -116,13 +115,13 @@ func CheckOtp(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Failed to create token",
 			})
-	
+
 			return
 		}
 		// Sent it back
 		c.SetSameSite(http.SameSiteLaxMode)
 		c.SetCookie("UserAuth", tokenstring, 3600*24*30, "", "", false, true)
-	
+
 		c.JSON(http.StatusOK, gin.H{
 			"status":    true,
 			"message":   "ok",
@@ -130,7 +129,7 @@ func CheckOtp(c *gin.Context) {
 			"expiresAt": ex,
 		})
 	} else {
-		
+
 		c.JSON(404, gin.H{
 			"msg": "otp is invalid",
 		})
