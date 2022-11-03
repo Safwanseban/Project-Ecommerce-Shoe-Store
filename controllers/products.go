@@ -15,6 +15,7 @@ import (
 var Products []struct {
 	Product_ID   uint
 	Product_Name string
+	Actual_price uint
 	Price        string
 	Image        string
 	SubPic1      string
@@ -68,14 +69,19 @@ func ProductAdding(c *gin.Context) { //Admin
 	extension = filepath.Ext(subpic2path.Filename)
 	subpic2 := uuid.New().String() + extension
 	c.SaveUploadedFile(subpic2path, "./public/images"+image)
+	discont := c.PostForm("discount")
+	discount, _ := strconv.Atoi(discont)
 
+	Discount := (Price * discount) / 100
 	product := models.Product{
 
 		Product_name: prodname,
-		Price:        uint(Price),
+		Price:        uint(Price)-uint(Discount),
 		Color:        color,
 		Description:  description,
-
+		Actual_Price: uint(Price),
+		Discount:     uint(discount),
+		
 		Brand: models.Brand{
 			Brands: brands,
 		},
@@ -152,6 +158,16 @@ func Editproducts(c *gin.Context) { //admin
 func DeleteProductById(c *gin.Context) { //admin
 	params := c.Param("id")
 	var products models.Product
+	var count uint
+initializers.DB.Raw("select count(product_id) from products where product_id=?", params).Scan(&count)
+if count<=0{
+	c.JSON(404,gin.H{
+		"msg":"product doesnot exist",
+	})
+	c.Abort()
+	return
+}
+
 	record := initializers.DB.Raw("delete from products where product_id=?", params).Scan(&products)
 	if record.Error != nil {
 		c.JSON(404, gin.H{"error": record.Error.Error()})
@@ -163,7 +179,7 @@ func DeleteProductById(c *gin.Context) { //admin
 }
 
 func ProductsView(c *gin.Context) { //user
-	sql := "SELECT product_id,product_name,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id"
+	sql := "SELECT product_id,product_name,actual_price,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id"
 	if s := c.Query("s"); s != "" { //search
 		sql = fmt.Sprintf("%s WHERE product_name like'%%%s%%'", sql, s)
 	}
