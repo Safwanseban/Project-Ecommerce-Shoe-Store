@@ -2,35 +2,37 @@ package auth
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-var JwtKey = []byte("supersecretkey")
+var JwtKey = []byte(os.Getenv("SECRET"))
 
 type JWTClaim struct {
-	
-	  Email  string `json:"email"`
+	Email string `json:"email"`
 	// jwt.StandardClaims
 	jwt.StandardClaims
 }
 
-func GenerateJWT(email string) (tokenString string, ex int64 ,err error) {
+func GenerateJWT(email string) (tokenString string, ex int64, err error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	claims := &JWTClaim{
-		Email:    email,
-	
+		Email: email,
+
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err = token.SignedString(JwtKey)
-	ex=claims.ExpiresAt
+	ex = claims.ExpiresAt
 	return
 }
+
 var P string
+
 func ValidateToken(signedToken string) (err error) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
@@ -43,7 +45,7 @@ func ValidateToken(signedToken string) (err error) {
 		return
 	}
 	claims, ok := token.Claims.(*JWTClaim)
-	P=claims.Email
+	P = claims.Email
 	if !ok {
 		err = errors.New("couldn't parse claims")
 		return

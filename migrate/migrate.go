@@ -5,11 +5,11 @@ import (
 	"github.com/Safwanseban/Project-Ecommerce/models"
 )
 
-
-func init()  {
+func init() {
 	initializers.ConnecttoDb()
+	initializers.Getenv()
 }
-func main()  {
+func main() {
 	initializers.DB.AutoMigrate(
 		&models.User{},
 		&models.Cart{},
@@ -19,6 +19,10 @@ func main()  {
 		&models.Otp{},
 		&models.Orders{},
 		&models.Orderd_Items{},
-		models.Cartsinfo{},
-	models.ShoeSize{},models.Catogory{},models.RazorPay{})
+		&models.Cartsinfo{},
+		&models.ShoeSize{},
+		&models.Catogory{},
+		&models.RazorPay{},
+		&models.Coupon{},
+		&models.Applied_Coupons{})
 }

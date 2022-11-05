@@ -28,31 +28,36 @@ var Products []struct {
 	Size         uint
 }
 
-func ProductAdding(c *gin.Context) { //Admin
-	// {
-	// 	"product_name":"Nike Running Shoes",
-	// 	"price":2500,
-	// 	"description":"men running shoes",
-	// 	"image":"https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_2000,h_2000/global/195110/01/sv01/fnd/IND/fmt/png/Blaze-Unisex-Shoes",
-	// 	"subpic1":"https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa,w_2000,h_2000/global/195110/01/sv01/fnd/IND/fmt/png/Blaze-Unisex-Shoes",
-	// 	"color":"black&white",
-	// 	"brand_id":1  ,
-	// 	"stock":2,
-	// 	"
+func ListingAllCat(c *gin.Context) {
+	var brandss []models.Brand
+	var catogorry []models.Catogory
+	var shoesizess []models.ShoeSize
+	initializers.DB.Find(&brandss)
+	initializers.DB.Find(&catogorry)
+	initializers.DB.Find(&shoesizess)
 
-	// }
-	// productid:=c.PostForm("productid")
-	// productID,_:=strconv.Atoi(productid)
+	c.JSON(200, gin.H{
+		"available brands":     brandss,
+		"available carogories": catogorry,
+		"available sizes":      shoesizess,
+	})
+}
+
+func ProductAdding(c *gin.Context) { //Admin
+
 	prodname := c.PostForm("productname")
 	price := c.PostForm("price")
 	Price, _ := strconv.Atoi(price)
 	description := c.PostForm("description")
 	color := c.PostForm("color")
-	brands := c.PostForm("brand")
+	brand := c.PostForm("brandID")
+	brands, _ := strconv.Atoi(brand)
 	stock := c.PostForm("stock")
 	Stock, _ := strconv.Atoi(stock)
-	catogory := c.PostForm("catogory")
-	size := c.PostForm("size")
+	catogory := c.PostForm("catogoryID")
+	catogoryy, _ := strconv.Atoi(catogory)
+	size := c.PostForm("sizeID")
+
 	Size, _ := strconv.Atoi(size)
 	// images adding
 	imagepath, _ := c.FormFile("image")
@@ -71,27 +76,51 @@ func ProductAdding(c *gin.Context) { //Admin
 	c.SaveUploadedFile(subpic2path, "./public/images"+image)
 	discont := c.PostForm("discount")
 	discount, _ := strconv.Atoi(discont)
+	BrandDiscount := c.PostForm("BrandDiscount")
+	brandDiscount, _ := strconv.Atoi(BrandDiscount)
+	var Discount int
+	//inserting brand discount on to the products
+	insert:=initializers.DB.Raw("update brands set discount=? where id=?", brandDiscount, brands).Scan(&models.Brand{})
+	if insert.Error!=nil{
+		c.JSON(404,gin.H{
+			"err":insert.Error.Error(),
+		})
+		c.Abort()
+		return
+	}
+	//comparing whcih type of discount is greater
+	if brandDiscount > discount {
+		Discount = (Price * brandDiscount) / 100
 
-	Discount := (Price * discount) / 100
+	} else {
+		Discount = (Price * discount) / 100
+	}
+
+	// Discount = (Price * discount) / 100
+	var count uint
+	initializers.DB.Raw("select count(*) from products where product_name=?", prodname).Scan(&count)
+	fmt.Println(count)
+	if count > 0 {
+		c.JSON(404, gin.H{
+			"msg": "A product with same name already exists",
+		})
+		c.Abort()
+		return
+	}
 	product := models.Product{
 
 		Product_name: prodname,
-		Price:        uint(Price)-uint(Discount),
+
+		Price:        uint(Price) - uint(Discount),
 		Color:        color,
 		Description:  description,
 		Actual_Price: uint(Price),
 		Discount:     uint(discount),
-		
-		Brand: models.Brand{
-			Brands: brands,
-		},
-		Catogory: models.Catogory{
-			Catogory: catogory,
-		},
-		ShoeSize: models.ShoeSize{
-			Size: uint(Size),
-		},
-		Image: image,
+
+		Brand_id:   uint(brands),
+		CatogoryID: uint(catogoryy),
+		ShoeSizeID: uint(Size),
+		Image:      image,
 
 		SubPic1: subpic11,
 		SubPic2: subpic2,
@@ -110,21 +139,6 @@ func ProductAdding(c *gin.Context) { //Admin
 	c.JSON(200, gin.H{
 		"msg": "added succesfully",
 	})
-
-	// var products models.Product
-	// if err := c.ShouldBindJSON(&products); err != nil {
-	// 	c.JSON(404, gin.H{"err": err.Error()})
-	// 	c.Abort()
-	// 	return
-	// }
-	// record := initializers.DB.Create(&products)
-	// if record.Error != nil {
-	// 	c.JSON(404, gin.H{"err": record.Error.Error()})
-	// 	c.Abort()
-	// 	return
-	// }
-	// c.JSON(http.StatusOK, gin.H{"productname": products.Product_name,
-	// 	"color": products.Color, "price": products.Price})
 
 }
 
@@ -159,14 +173,14 @@ func DeleteProductById(c *gin.Context) { //admin
 	params := c.Param("id")
 	var products models.Product
 	var count uint
-initializers.DB.Raw("select count(product_id) from products where product_id=?", params).Scan(&count)
-if count<=0{
-	c.JSON(404,gin.H{
-		"msg":"product doesnot exist",
-	})
-	c.Abort()
-	return
-}
+	initializers.DB.Raw("select count(product_id) from products where product_id=?", params).Scan(&count)
+	if count <= 0 {
+		c.JSON(404, gin.H{
+			"msg": "product doesnot exist",
+		})
+		c.Abort()
+		return
+	}
 
 	record := initializers.DB.Raw("delete from products where product_id=?", params).Scan(&products)
 	if record.Error != nil {

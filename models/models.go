@@ -8,24 +8,26 @@ import (
 )
 
 type User struct {
-	ID           uint   `json:"id" gorm:"primaryKey;unique"  `
-	First_Name   string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=100 "  `
-	Last_Name    string `json:"last_name"    gorm:"not null"    validate:"required,min=2,max=100 "  `
-	Email        string `json:"email"   gorm:"not null;unique"  validate:"email,required "`
-	Password     string `json:"password" gorm:"not null"  validate:"required "`
-	Phone        string `json:"phone"   gorm:"not null;unique" validate:"email,required "`
-	Block_status bool   `json:"block_status " gorm:"not null"   `
-	Country      string `json:"country "   `
-	City         string `json:"city "   `
-	Pincode      uint   `json:"pincode "   `
-	Cart         Cart
-	Cart_id      uint `json:"cart_id" `
-	Address      Address
-	Address_id   uint `json:"address_id" `
-	Orders       Orders
-	Orders_ID    uint `json:"orders_id" `
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID                uint   `json:"id" gorm:"primaryKey;unique"  `
+	First_Name        string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=100 "  `
+	Last_Name         string `json:"last_name"    gorm:"not null"    validate:"required,min=2,max=100 "  `
+	Email             string `json:"email"   gorm:"not null;unique"  validate:"email,required "`
+	Password          string `json:"password" gorm:"not null"  validate:"required "`
+	Phone             string `json:"phone"   gorm:"not null;unique" validate:"email,required "`
+	Block_status      bool   `json:"block_status " gorm:"not null"   `
+	Country           string `json:"country "   `
+	City              string `json:"city "   `
+	Pincode           uint   `json:"pincode "   `
+	Cart              Cart
+	Cart_id           uint `json:"cart_id" `
+	Address           Address
+	Address_id        uint `json:"address_id" `
+	Orders            Orders
+	Orders_ID         uint `json:"orders_id" `
+	Applied_Coupons   Applied_Coupons
+	Applied_CouponsID uint
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 func (user *User) HashPassword(password string) error {
@@ -75,7 +77,7 @@ type Address struct {
 	City         string `json:"city"  gorm:"not null" `
 }
 type Product struct {
-	Product_id   uint   `json:"product_id" gorm:"primaryKey"  `
+	Product_id   uint   `json:"product_id" gorm:"primaryKey" `
 	Product_name string `json:"product_name" gorm:"not null"  `
 	Price        uint   `json:"price" gorm:"not null"  `
 	Actual_Price uint   `json:"actual_price" gorm:"not null"`
@@ -98,8 +100,9 @@ type Product struct {
 	ShoeSizeID uint
 }
 type Brand struct {
-	ID     uint   `json:"id" gorm:"primaryKey"  `
-	Brands string `json:"brands" gorm:"not null"  `
+	ID       uint   `json:"id" gorm:"primaryKey"  `
+	Brands   string `json:"brands" gorm:"not null"  `
+	Discount uint   `json:"discount"`
 }
 type Catogory struct {
 	ID       uint `json:"id" gorm:"primaryKey"  `
@@ -148,4 +151,17 @@ type RazorPay struct {
 	Signature       string
 	OrderId         string
 	AmountPaid      string
+}
+type Coupon struct {
+	gorm.Model
+
+	Coupon_Code string `json:"coupon_code"`
+	Discount    uint   `json:"discount"`
+	Quantity    uint   `json:"quantity"`
+	Validity    int64  `json:"validity"`
+}
+type Applied_Coupons struct {
+	gorm.Model
+	UserID      uint
+	Coupon_Code string `json:"coupon_code"`
 }

@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"fmt"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -9,9 +10,12 @@ import (
 
 var DB *gorm.DB
 
+func init() {
+	Getenv()
+}
 func ConnecttoDb() {
 	var err error
-	dsn := "host=localhost user=safwan password=Safwan@123 dbname=ecommerce port=5432 "
+	dsn := os.Getenv("DB_DETAILS")
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println("error connecting to database")
