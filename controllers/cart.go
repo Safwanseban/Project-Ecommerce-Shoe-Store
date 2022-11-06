@@ -239,7 +239,7 @@ func Checkout(c *gin.Context) {
 	} else if Coupons != "" {
 		flag = 1
 		i.DB.Raw("select discount,validity,count(*) as count from coupons  where coupon_code=? group by discount,validity", Coupons).Scan(&Coupondisc)
-		i.DB.Raw("select user_id,coupon_code,count(*) from applied_coupons where coupon_code=? group by user_id,coupon_code", Coupons).Scan(&Appliedcoup)
+		i.DB.Raw("select user_id,coupon_code,count(*) from applied_coupons where coupon_code=? and user_id=? group by user_id,coupon_code", Coupons,user.ID).Scan(&Appliedcoup)
 		if Appliedcoup.Count > 0 {
 			c.JSON(404, gin.H{
 				"msg": "already applied",
@@ -271,6 +271,7 @@ func Checkout(c *gin.Context) {
 		fmt.Println("hai")
 		Discount := (totalcartvalue * Coupondisc.Discount) / 100
 		totalcartvalue = totalcartvalue - Discount
+
 	}
 
 	c.JSON(404, gin.H{
@@ -292,15 +293,16 @@ func Checkout(c *gin.Context) {
 	}
 
 	if PaymentMethod == razorpay && addressID == int(address.Address_id) && address.UserId == user.ID {
-
+		i.DB.Raw("update carts set total_price=? where user_id=?", totalcartvalue, user.ID).Scan(&cart)
 		orders := models.Orders{
-			UserId:         user.ID,
-			Address_id:     uint(addressID),
-			Order_id:       orderID,
-			Order_Status:   "pending",
-			PaymentMethod:  razorpay,
-			Payment_Status: notcompRazorpay,
-			Total_Amount:   totalcartvalue,
+			UserId:          user.ID,
+			Address_id:      uint(addressID),
+			Order_id:        orderID,
+			Order_Status:    "pending",
+			PaymentMethod:   razorpay,
+			Applied_Coupons: Coupons,
+			Payment_Status:  notcompRazorpay,
+			Total_Amount:    totalcartvalue,
 		}
 
 		result := i.DB.Create(&orders)
@@ -320,15 +322,9 @@ func Checkout(c *gin.Context) {
 			c.Abort()
 			return
 		}
-	} else {
-		c.JSON(404, gin.H{
-			"msg": "select payment method and address",
-		})
-
-	}
-
-	if PaymentMethod == cod && addressID == int(address.Address_id) && address.UserId == user.ID {
+	} else if PaymentMethod == cod && addressID == int(address.Address_id) && address.UserId == user.ID {
 		fmt.Println("hai cod")
+		i.DB.Raw("update carts set total_price=? where user_id=?", totalcartvalue, user.ID).Scan(&cart)
 		orders := models.Orders{
 			UserId:         user.ID,
 			Address_id:     uint(addressID),

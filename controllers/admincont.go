@@ -47,7 +47,7 @@ func AdminLogin(c *gin.Context) { // admin login page post
 		})
 
 	} else {
-		c.JSON(404, gin.H{"msg": "error login"})
+		c.JSON(400, gin.H{"msg": "error login"})
 	}
 
 }
@@ -75,13 +75,22 @@ func AdminLogout(c *gin.Context) { // adminLogout page
 
 }
 
-var I = 3
+type Userdet []struct {
+	ID           uint
+	First_Name   string
+	Last_Name    string
+	Email        string
+	Phone        string
+	Block_status bool
+	Country      string
+	City         string
+	Pincode      uint
+}
 
 func Userdata(c *gin.Context) {
-	I = 5
-	fmt.Println(I)
-	var user []models.User
-	i.DB.Raw("SELECT * FROM users ORDER BY id ASC").Scan(&user)
+
+	var user Userdet
+	i.DB.Raw("SELECT id,first_name,last_name,email,phone,block_status,country,city,pincode FROM users ORDER BY id ASC").Scan(&user)
 	c.JSON(200, gin.H{"user": user})
 }
 func BlockUser(c *gin.Context) {
@@ -97,7 +106,7 @@ func UnBlockUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "Unblocked succesfully"})
 }
 func AdminShowOrders(c *gin.Context) {
-	fmt.Println(I)
+
 	var ordered_items Orderd_Items
 	record := i.DB.Raw("select user_id,product_id,product_name,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
 	if record.Error != nil {

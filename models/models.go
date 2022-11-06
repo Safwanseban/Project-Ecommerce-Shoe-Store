@@ -122,15 +122,16 @@ type PaymentMethod struct {
 }
 type Orders struct {
 	gorm.Model
-	UserId         uint   `json:"user_id"  gorm:"not null" `
-	Order_id       string `json:"order_id"  gorm:"not null" `
-	Total_Amount   uint   `json:"total_amount"  gorm:"not null" `
-	Discount       uint   `json:"discount"   `
-	PaymentMethod  string `json:"paymentmethod"  gorm:"not null" `
-	Payment_Status string `json:"payment_status"   `
-	Order_Status   string `json:"order_status"   `
-	Address        Address
-	Address_id     uint `json:"address_id"  `
+	UserId          uint   `json:"user_id"  gorm:"not null" `
+	Order_id        string `json:"order_id"  gorm:"not null" `
+	Total_Amount    uint   `json:"total_amount"  gorm:"not null" `
+	Applied_Coupons string `json:"applied_coupons"  `
+	Discount        uint   `json:"discount"   `
+	PaymentMethod   string `json:"paymentmethod"  gorm:"not null" `
+	Payment_Status  string `json:"payment_status"   `
+	Order_Status    string `json:"order_status"   `
+	Address         Address
+	Address_id      uint `json:"address_id"  `
 }
 type Orderd_Items struct {
 	gorm.Model
@@ -163,5 +164,5 @@ type Coupon struct {
 type Applied_Coupons struct {
 	gorm.Model
 	UserID      uint
-	Coupon_Code string `json:"coupon_code"`
+	Coupon_Code string `json:"coupon_code" `
 }

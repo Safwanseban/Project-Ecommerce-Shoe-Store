@@ -11,18 +11,20 @@ import (
 )
 
 func RazorPay(c *gin.Context) {
+	t := c.GetString("coupon")
+	fmt.Println(t)
 	var user models.User
 	// var cart models.Cart
 	useremail := c.GetString("user")
 	fmt.Println(useremail)
 	initializers.DB.Raw("select id,phone from users where email=?", useremail).Scan(&user)
-	var sumtotal string
+	var sumtotal uint
 	initializers.DB.Raw("select sum(total_price) from carts where user_id=?", user.ID).Scan(&sumtotal)
 	fmt.Println(sumtotal)
 	client := razorpay.NewClient("rzp_test_Nfnipdccvgb8fW", "UfwKXCGjiUrcfTEXpWlupcrN")
-
+	razpayvalue := sumtotal * 100
 	data := map[string]interface{}{
-		"amount":   sumtotal,
+		"amount":   razpayvalue,
 		"currency": "INR",
 		"receipt":  "some_receipt_id",
 	}
@@ -38,7 +40,8 @@ func RazorPay(c *gin.Context) {
 	c.HTML(200, "app.html", gin.H{
 
 		"UserID":       user.ID,
-		"total":        sumtotal,
+		"total_price":  sumtotal,
+		"total":        razpayvalue,
 		"orderid":      value,
 		"amount":       sumtotal,
 		"Email":        useremail,
@@ -87,9 +90,17 @@ func OrderPlaced(Uid int, orderId string) {
 	userid := Uid
 	orderid := orderId
 	var orders models.Orders
+	var applied string
+	
+
 	initializers.DB.Raw("update orders set order_status=?,payment_status=?,order_id=? where user_id=?", "order completed", "payment done", orderid, userid).Scan(&orders)
 	var ordereditems models.Orderd_Items
-
+	initializers.DB.Raw("select applied_coupons from orders where order_id=?", orderId).Scan(&applied)
+	coupons := models.Applied_Coupons{
+		Coupon_Code: applied,
+		UserID:      uint(userid),
+	}
+	initializers.DB.Create(&coupons)
 	initializers.DB.Raw("update orderd_items set order_status=?,payment_status=? where user_id=?", "orderplaced", "Payment Completed", userid).Scan(&ordereditems)
 
 }
