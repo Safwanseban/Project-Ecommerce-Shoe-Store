@@ -29,7 +29,10 @@ func Signup(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+
 	c.JSON(200, gin.H{"email": user.Email, "msg": "Go to LoginPage"})
+
 
 }
 

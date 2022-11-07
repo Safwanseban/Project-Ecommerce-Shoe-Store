@@ -77,6 +77,7 @@ type Cartsinfo []struct {
 	Price        string
 	Email        string
 	Quantity     string
+	Total_Amount uint
 	Total_Price  string
 }
 
@@ -197,9 +198,13 @@ func Checkout(c *gin.Context) {
 			Piid, _ := strconv.Atoi(pid)
 			pname := l.Product_Name
 			pprice := l.Price
+			pPrice,_:=strconv.Atoi(pprice)
+			pquantity:=l.Quantity
+			pQuantity,_:=strconv.Atoi(pquantity)
+
 			ordereditems := models.Orderd_Items{UserId: uint(Puid), Product_id: uint(Piid),
 				Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
-				Order_Status: "confirmed", Payment_Status: "pending", Total_amount: totalcartvalue,
+				Order_Status: "confirmed", Payment_Status: "pending", Total_amount: uint(pQuantity)*uint(pPrice),
 			}
 			i.DB.Create(&ordereditems)
 
@@ -233,15 +238,16 @@ func Checkout(c *gin.Context) {
 	var flag = 0
 	// checking all possible conditions a coupon wont work
 	if Coupons == "" {
-		c.JSON(404, gin.H{
+		c.JSON(300, gin.H{
 			"msg": "enter coupon if you have any coupon",
 		})
+		
 	} else if Coupons != "" {
 		flag = 1
 		i.DB.Raw("select discount,validity,count(*) as count from coupons  where coupon_code=? group by discount,validity", Coupons).Scan(&Coupondisc)
-		i.DB.Raw("select user_id,coupon_code,count(*) from applied_coupons where coupon_code=? and user_id=? group by user_id,coupon_code", Coupons,user.ID).Scan(&Appliedcoup)
+		i.DB.Raw("select user_id,coupon_code,count(*) from applied_coupons where coupon_code=? and user_id=? group by user_id,coupon_code", Coupons, user.ID).Scan(&Appliedcoup)
 		if Appliedcoup.Count > 0 {
-			c.JSON(404, gin.H{
+			c.JSON(300, gin.H{
 				"msg": "already applied",
 			})
 			flag = 2
@@ -249,7 +255,7 @@ func Checkout(c *gin.Context) {
 		fmt.Println(Coupondisc.Validity)
 		if Coupondisc.Count <= 0 {
 			fmt.Println("hai")
-			c.JSON(404, gin.H{
+			c.JSON(300, gin.H{
 
 				"msg": "not a valid coupon",
 			})
@@ -259,7 +265,7 @@ func Checkout(c *gin.Context) {
 
 		if Coupondisc.Validity < time.Now().Local().Unix() && Coupondisc.Validity > 1 {
 
-			c.JSON(404, gin.H{
+			c.JSON(300, gin.H{
 				"msg": "coupon expired",
 			})
 			flag = 2
@@ -274,7 +280,7 @@ func Checkout(c *gin.Context) {
 
 	}
 
-	c.JSON(404, gin.H{
+	c.JSON(300, gin.H{
 		"address":          Address,
 		"total cart value": totalcartvalue,
 	})
@@ -287,13 +293,13 @@ func Checkout(c *gin.Context) {
 	fmt.Println(addressID)
 	fmt.Println(address.Address_id)
 	if address.UserId != user.ID {
-		c.JSON(404, gin.H{
+		c.JSON(200, gin.H{
 			"msg": "enter valid address id",
 		})
 	}
 
 	if PaymentMethod == razorpay && addressID == int(address.Address_id) && address.UserId == user.ID {
-		i.DB.Raw("update carts set total_price=? where user_id=?", totalcartvalue, user.ID).Scan(&cart)
+		
 		orders := models.Orders{
 			UserId:          user.ID,
 			Address_id:      uint(addressID),
@@ -314,9 +320,9 @@ func Checkout(c *gin.Context) {
 		}
 		var ordereditems models.Orderd_Items
 
-		i.DB.Raw("update orderd_items set total_amount=? order_status=?,payment_status=?,payment_method=? where user_id=?", totalcartvalue, "orderplaced", notcompRazorpay, razorpay, user.ID).Scan(&ordereditems)
+		i.DB.Raw("update orderd_items set  order_status=?,payment_status=?,payment_method=? where user_id=?",  "orderplaced", notcompRazorpay, razorpay, user.ID).Scan(&ordereditems)
 		if result.Error == nil {
-			c.JSON(404, gin.H{
+			c.JSON(300, gin.H{
 				"msg": "Go to the Razorpay Page for Order completion",
 			})
 			c.Abort()
@@ -324,7 +330,7 @@ func Checkout(c *gin.Context) {
 		}
 	} else if PaymentMethod == cod && addressID == int(address.Address_id) && address.UserId == user.ID {
 		fmt.Println("hai cod")
-		i.DB.Raw("update carts set total_price=? where user_id=?", totalcartvalue, user.ID).Scan(&cart)
+	
 		orders := models.Orders{
 			UserId:         user.ID,
 			Address_id:     uint(addressID),
@@ -352,7 +358,7 @@ func Checkout(c *gin.Context) {
 		i.DB.Raw("update orderd_items set order_status=?,payment_method=? where user_id=?", "orderplaced", cod, user.ID).Scan(&ordereditems)
 
 	} else {
-		c.JSON(404, gin.H{
+		c.JSON(300, gin.H{
 			"msg": "select payment method and address",
 		})
 		c.Abort()

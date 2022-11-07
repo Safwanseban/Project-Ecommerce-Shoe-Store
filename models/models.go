@@ -8,22 +8,24 @@ import (
 )
 
 type User struct {
-	ID                uint   `json:"id" gorm:"primaryKey;unique"  `
-	First_Name        string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=100 "  `
-	Last_Name         string `json:"last_name"    gorm:"not null"    validate:"required,min=2,max=100 "  `
-	Email             string `json:"email"   gorm:"not null;unique"  validate:"email,required "`
-	Password          string `json:"password" gorm:"not null"  validate:"required "`
-	Phone             string `json:"phone"   gorm:"not null;unique" validate:"email,required "`
-	Block_status      bool   `json:"block_status " gorm:"not null"   `
-	Country           string `json:"country "   `
-	City              string `json:"city "   `
-	Pincode           uint   `json:"pincode "   `
-	Cart              Cart
-	Cart_id           uint `json:"cart_id" `
-	Address           Address
-	Address_id        uint `json:"address_id" `
-	Orders            Orders
-	Orders_ID         uint `json:"orders_id" `
+	ID             uint   `json:"id" gorm:"primaryKey;unique"  `
+	First_Name     string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=100 "  `
+	Last_Name      string `json:"last_name"    gorm:"not null"    validate:"required,min=2,max=100 "  `
+	Email          string `json:"email"   gorm:"not null;unique"  validate:"email,required "`
+	Password       string `json:"password" gorm:"not null"  validate:"required "`
+	Phone          string `json:"phone"   gorm:"not null;unique" validate:"email,required "`
+	Block_status   bool   `json:"block_status " gorm:"not null"   `
+	Country        string `json:"country "   `
+	City           string `json:"city "   `
+	Pincode        uint   `json:"pincode "   `
+	Cart           Cart
+	Cart_id        uint `json:"cart_id" `
+	Address        Address
+	Address_id     uint `json:"address_id" `
+	Orders         Orders
+	Orders_ID      uint `json:"orders_id" `
+	Wallet_Balance uint `json:"wallet_balance" `
+
 	Applied_Coupons   Applied_Coupons
 	Applied_CouponsID uint
 	CreatedAt         time.Time

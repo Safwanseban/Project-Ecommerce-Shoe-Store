@@ -59,9 +59,29 @@ func Cancelorders(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	
 
+	var order models.Orderd_Items
+	initializers.DB.Find(&order).Where("orders_id=?", orderid)
+	update_status := "order cancelled"
 
-	initializers.DB.Raw("update orderd_items set order_status=? where orders_id=?", "order cancelled", orderid).Scan(&ordered_items)
+	if order.Order_Status == update_status {
+		fmt.Println("orderrvvv")
+		c.JSON(300, gin.H{
+			"msg": "order already cancelled",
+		})
+		c.Abort()
+		return
+	}
+
+	initializers.DB.Raw("update orderd_items set order_status=? where orders_id=?", "order cancelled", orderid).Scan(&order)
+	Order := order.Total_amount
+
+	var balance uint
+	initializers.DB.Raw("select wallet_balance from users where id=?", user.ID).Scan(&balance)
+	newBalance := balance + uint(Order)
+	initializers.DB.Raw("update users set wallet_balance =? where id=?", newBalance, user.ID).Scan(&user)
+	// // fmt.Println(order.Price)
+	fmt.Println(user.Wallet_Balance)
+
 	c.JSON(200, gin.H{"orderes": ordered_items})
 }
