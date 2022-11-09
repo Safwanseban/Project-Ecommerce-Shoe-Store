@@ -6,11 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes(ctx *gin.Engine)  {
+func UserRoutes(ctx *gin.Engine) {
 	user := ctx.Group("/user")
 	{
 		user.GET("/", c.UserHome)
-
+		user.POST("/add-to-wishlist", middlewares.UserAuth(), c.AddtoWishList)
+		user.GET("/view-wishlist", middlewares.UserAuth(), c.ViewWishlist)
+		user.DELETE("/remove-wishlist", middlewares.UserAuth(), c.RemoveFromWishlist)
+		user.POST("/wishlist-to-cart", middlewares.UserAuth(), c.WishListToCart)
 		user.POST("/addtocart", middlewares.UserAuth(), c.AddToCart)
 		user.GET("/cart", middlewares.UserAuth(), c.Viewcart)
 		user.GET("/checkout", middlewares.UserAuth(), c.Checkout)
@@ -25,6 +28,7 @@ func UserRoutes(ctx *gin.Engine)  {
 		user.PUT("/profile/cancel-order", middlewares.UserAuth(), c.Cancelorders)
 		user.GET("/profile/view-order", middlewares.UserAuth(), c.ViewOrders)
 		user.POST("/profile/change-password", middlewares.UserAuth(), c.ForgetPassword)
+		user.GET("/profile/wallet", middlewares.UserAuth(), c.WalletBalance)
 	}
 
 	ctx.POST("/signup", c.Signup)

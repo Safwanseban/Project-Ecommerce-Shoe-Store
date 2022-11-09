@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/Safwanseban/Project-Ecommerce/initializers"
@@ -103,7 +104,13 @@ func AddAddress(c *gin.Context) { //add address through profile
 	c.JSON(200, gin.H{"msg": "address added"})
 }
 
+func WalletBalance(c *gin.Context) {
+	useremail := c.GetString("user")
+	var user models.User
+	initializers.DB.Raw("select id,wallet_balance from users where email=?", useremail).Scan(&user)
+	fmt.Println(user.Wallet_Balance)
+	c.JSON(200, gin.H{
+		"wallet-balance": user.Wallet_Balance,
+	})
 
-
-
-
+}

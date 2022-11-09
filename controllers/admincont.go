@@ -116,6 +116,9 @@ func AdminShowOrders(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"orderes": ordered_items})
 }
+
+
+
 func AdminCancelOrders(c *gin.Context) {
 
 	var ordered_items Orderd_Items

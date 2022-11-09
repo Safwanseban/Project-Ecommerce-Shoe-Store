@@ -9,11 +9,11 @@ import (
 
 type User struct {
 	ID             uint   `json:"id" gorm:"primaryKey;unique"  `
-	First_Name     string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=100 "  `
-	Last_Name      string `json:"last_name"    gorm:"not null"    validate:"required,min=2,max=100 "  `
-	Email          string `json:"email"   gorm:"not null;unique"  validate:"email,required "`
-	Password       string `json:"password" gorm:"not null"  validate:"required "`
-	Phone          string `json:"phone"   gorm:"not null;unique" validate:"email,required "`
+	First_Name     string `json:"first_name"  gorm:"not null" validate:"required,min=2,max=50"  `
+	Last_Name      string `json:"last_name"    gorm:"not null"    validate:"required,min=1,max=50"  `
+	Email          string `json:"email"   gorm:"not null;unique"  validate:"email,required"`
+	Password       string `json:"password" gorm:"not null"  validate:"required"`
+	Phone          string `json:"phone"   gorm:"not null;unique" validate:"required"`
 	Block_status   bool   `json:"block_status " gorm:"not null"   `
 	Country        string `json:"country "   `
 	City           string `json:"city "   `
@@ -28,6 +28,8 @@ type User struct {
 
 	Applied_Coupons   Applied_Coupons
 	Applied_CouponsID uint
+	WishList          WishList
+	WishListID        uint
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
@@ -100,6 +102,8 @@ type Product struct {
 	CatogoryID uint
 	ShoeSize   ShoeSize
 	ShoeSizeID uint
+	WishList   WishList
+	WishListID uint
 }
 type Brand struct {
 	ID       uint   `json:"id" gorm:"primaryKey"  `
@@ -167,4 +171,9 @@ type Applied_Coupons struct {
 	gorm.Model
 	UserID      uint
 	Coupon_Code string `json:"coupon_code" `
+}
+type WishList struct {
+	gorm.Model
+	UserID     uint
+	Product_id uint
 }

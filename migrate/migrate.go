@@ -24,5 +24,7 @@ func main() {
 		&models.Catogory{},
 		&models.RazorPay{},
 		&models.Coupon{},
-		&models.Applied_Coupons{})
+		&models.Applied_Coupons{},
+		&models.WishList{},
+	)
 }

@@ -8,7 +8,10 @@ import (
 	"github.com/Safwanseban/Project-Ecommerce/initializers"
 	"github.com/Safwanseban/Project-Ecommerce/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate = validator.New()
 
 func Signup(c *gin.Context) {
 	var user models.User
@@ -17,7 +20,11 @@ func Signup(c *gin.Context) {
 		c.Abort()
 		return
 	}
-
+	validationErr := validate.Struct(user)
+	if validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validationErr})
+		return
+	}
 	if err := user.HashPassword(user.Password); err != nil {
 		c.JSON(404, gin.H{"err": err.Error()})
 		c.Abort()
@@ -30,9 +37,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-
 	c.JSON(200, gin.H{"email": user.Email, "msg": "Go to LoginPage"})
-
 
 }
 
@@ -67,7 +72,8 @@ func LoginUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	tokenString,ex ,err := auth.GenerateJWT(user.Email)
+	tokenString, ex, err := auth.GenerateJWT(user.Email)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("UserAuth", tokenString, 3600*24*30, "", "", false, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -75,7 +81,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString,"expiresAt":ex})
+	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString, "expiresAt": ex})
 }
 func UserHome(c *gin.Context) {
 	c.JSON(200, gin.H{"msg": "welcome User Home"})
