@@ -165,6 +165,7 @@ var Address []struct {
 	City         string
 }
 
+
 func Checkout(c *gin.Context) {
 	var user models.User
 	var cart models.Cart
@@ -333,7 +334,7 @@ func Checkout(c *gin.Context) {
 		}
 
 	} else if PaymentMethod == razorpay && addressID == int(address.Address_id) && address.UserId == user.ID {
-
+	
 		orders := models.Orders{
 			UserId:          user.ID,
 			Address_id:      uint(addressID),
@@ -352,6 +353,9 @@ func Checkout(c *gin.Context) {
 			return
 
 		}
+
+
+
 		var ordereditems models.Orderd_Items
 
 		i.DB.Raw("update orderd_items set  order_status=?,payment_status=?,payment_method=? where user_id=?", "orderplaced", notcompRazorpay, razorpay, user.ID).Scan(&ordereditems)

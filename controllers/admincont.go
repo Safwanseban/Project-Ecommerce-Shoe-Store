@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Safwanseban/Project-Ecommerce/auth"
+	"github.com/Safwanseban/Project-Ecommerce/initializers"
 	i "github.com/Safwanseban/Project-Ecommerce/initializers"
 	"github.com/Safwanseban/Project-Ecommerce/models"
 	"github.com/gin-gonic/gin"
@@ -117,8 +118,26 @@ func AdminShowOrders(c *gin.Context) {
 	c.JSON(200, gin.H{"orderes": ordered_items})
 }
 
+func AdminChangeOrderStatus(c *gin.Context) {
 
+	var Order_status struct {
+		Order_Id     string
+		Order_Status string
+	}
+	if err := c.BindJSON(&Order_status); err != nil {
+		c.JSON(404, gin.H{
+			"err": err.Error(),
+		})
+	}
+	record:=initializers.DB.Model(&models.Orderd_Items{}).Where("orders_id = ?", Order_status.Order_Id).Update("order_status", Order_status.Order_Status)
+	if record.Error==nil{
+		c.JSON(200,gin.H{
+			"order_status":Order_status.Order_Status,
+			"msg":"order status have been successfully changed",
+		})
+	}
 
+}
 func AdminCancelOrders(c *gin.Context) {
 
 	var ordered_items Orderd_Items

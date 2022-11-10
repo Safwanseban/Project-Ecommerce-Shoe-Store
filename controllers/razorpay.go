@@ -20,6 +20,7 @@ func RazorPay(c *gin.Context) {
 	initializers.DB.Raw("select id,phone from users where email=?", useremail).Scan(&user)
 	var sumtotal uint
 	initializers.DB.Raw("select sum(total_price) from carts where user_id=?", user.ID).Scan(&sumtotal)
+
 	fmt.Println(sumtotal)
 	client := razorpay.NewClient("rzp_test_Nfnipdccvgb8fW", "UfwKXCGjiUrcfTEXpWlupcrN")
 	razpayvalue := sumtotal * 100
@@ -91,7 +92,6 @@ func OrderPlaced(Uid int, orderId string) {
 	orderid := orderId
 	var orders models.Orders
 	var applied string
-	
 
 	initializers.DB.Raw("update orders set order_status=?,payment_status=?,order_id=? where user_id=?", "order completed", "payment done", orderid, userid).Scan(&orders)
 	var ordereditems models.Orderd_Items

@@ -29,6 +29,7 @@ var Products []struct {
 }
 
 func ListingAllCat(c *gin.Context) {
+
 	var brandss []models.Brand
 	var catogorry []models.Catogory
 	var shoesizess []models.ShoeSize
@@ -42,7 +43,26 @@ func ListingAllCat(c *gin.Context) {
 		"available sizes":      shoesizess,
 	})
 }
+func ApplyBrandDiscount(c *gin.Context) {
 
+	var brand struct {
+		Brand_id uint
+		Discount uint
+	}
+	if err := c.BindJSON(&brand); err != nil {
+		c.JSON(404, gin.H{
+			"err": err.Error(),
+		})
+	}
+
+	record := initializers.DB.Model(&models.Brand{}).Where("id = ?", brand.Brand_id).Update("discount", brand.Discount)
+	if record.Error == nil {
+		c.JSON(200, gin.H{
+			"discount": brand.Discount,
+			"msg":      "brand discount applied"})
+	}
+
+}
 func ProductAdding(c *gin.Context) { //Admin
 
 	prodname := c.PostForm("productname")
@@ -80,10 +100,10 @@ func ProductAdding(c *gin.Context) { //Admin
 	brandDiscount, _ := strconv.Atoi(BrandDiscount)
 	var Discount int
 	//inserting brand discount on to the products
-	insert:=initializers.DB.Raw("update brands set discount=? where id=?", brandDiscount, brands).Scan(&models.Brand{})
-	if insert.Error!=nil{
-		c.JSON(404,gin.H{
-			"err":insert.Error.Error(),
+	insert := initializers.DB.Raw("update brands set discount=? where id=?", brandDiscount, brands).Scan(&models.Brand{})
+	if insert.Error != nil {
+		c.JSON(404, gin.H{
+			"err": insert.Error.Error(),
 		})
 		c.Abort()
 		return

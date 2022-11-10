@@ -47,56 +47,53 @@ func ViewOrders(c *gin.Context) {
 
 }
 
-var orderscan struct {
-	Total_Amount   uint
-	Count          uint
-	Order_Status   string
-	Payment_Status string
-	Payment_Method string
+func ReturnOrder(c *gin.Context) {
+	var order models.Orderd_Items
+	var user models.User
+	userEmail := c.GetString("user")
+
+	initializers.DB.Raw("select id from users where email=?", userEmail).Scan(&user)
+	var Order_return struct {
+		Order_ID string
+	}
+	if err := c.BindJSON(&Order_return); err != nil {
+		c.JSON(200, gin.H{"err": err.Error()})
+	}
+	initializers.DB.Where("orders_id=?", Order_return.Order_ID).Find(&order)
+	if order.Order_Status == "returned" {
+		c.JSON(400, gin.H{
+			"msg": "order already returened",
+		})
+		c.Abort()
+		return
+	}
+
+	var balance int
+	initializers.DB.Raw("SELECT wallet_balance FROM users WHERE id = ?", user.ID).Scan(&balance)
+	//starting transcations
+	tx := initializers.DB.Begin()
+	record1 := tx.Model(&models.Orderd_Items{}).Where("orders_id=?", Order_return.Order_ID).Update("order_status", "returned")
+	if record1.Error != nil {
+		tx.Rollback()
+		c.JSON(404, gin.H{
+			"err": record1.Error.Error(),
+		})
+	}
+	newBalance := balance + int(order.Total_amount)
+	record2 := tx.Model(&user).Where("id = ?", user.ID).Update("wallet_balance", newBalance)
+	if record2.Error != nil {
+		tx.Rollback()
+		c.JSON(404, gin.H{
+			"err": record1.Error.Error(),
+		})
+	}
+	tx.Commit()
+
+	c.JSON(200, gin.H{
+		"msg": "order returned",
+	})
+
 }
-
-// func Cancelorders(c *gin.Context) {
-// 	var user models.User
-// 	userEmail := c.GetString("user")
-// 	orderid := c.Query("orderID")
-// 	update_status := "order cancelled"
-// 	initializers.DB.Raw("select id from users where email=?", userEmail).Scan(&user) //getting user id
-
-// 	var order models.Orderd_Items
-
-// 	var total_amount uint
-// 	initializers.DB.Raw("select total_amount,count(*) as count from orderd_items where orders_id=? and user_id=? and order_status=? group by total_amount", orderid, user.ID, update_status).Scan(&orderscan)
-// 	if orderscan.Count >= 1 {
-// 		c.JSON(300, gin.H{
-// 			"msg": "order already cancelled",
-// 		})
-// 		c.Abort()
-// 		return
-// 	}
-// 	initializers.DB.Raw("select payment_status,order_status,payment_method from orderd_items where orders_id=? and user_id=?", orderid, user.ID).Scan(&orderscan)
-// 	fmt.Println(orderscan.Count, orderscan.Total_Amount, orderscan.Payment_Method)
-// 	fmt.Println(total_amount)
-
-// 	fmt.Println(user.ID, userEmail)
-
-// 	record := initializers.DB.Raw("update orderd_items set order_status=? where orders_id=?", "order cancelled", orderid).Scan(&order)
-
-// 	var balance uint
-// 	if orderscan.Order_Status == update_status && orderscan.Payment_Method == "Razorpay" && order.Payment_Status == "Payment Completed" {
-// 		fmt.Println("hai")
-// 		initializers.DB.Raw("select wallet_balance from users where id=?", user.ID).Scan(&balance)
-
-// 		newBalance := balance + orderscan.Total_Amount
-// 		initializers.DB.Raw("update users set wallet_balance =? where id=?", newBalance, user.ID).Scan(&user)
-// 	}
-
-// 	fmt.Println(user.Wallet_Balance)
-// 	if record.Error == nil {
-// 		c.JSON(200, gin.H{
-// 			"msg": "order cancelled successfully",
-// 		})
-// 	}
-// }
 
 func Cancelorders(c *gin.Context) {
 	var user models.User

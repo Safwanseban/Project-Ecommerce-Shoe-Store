@@ -26,6 +26,7 @@ func UserRoutes(ctx *gin.Engine) {
 		user.GET("/profile/address", middlewares.UserAuth(), c.ShowAddress)
 		user.POST("/profile/add-address", middlewares.UserAuth(), c.AddAddress)
 		user.PUT("/profile/cancel-order", middlewares.UserAuth(), c.Cancelorders)
+		user.PUT("/profile/return-order", middlewares.UserAuth(), c.ReturnOrder)
 		user.GET("/profile/view-order", middlewares.UserAuth(), c.ViewOrders)
 		user.POST("/profile/change-password", middlewares.UserAuth(), c.ForgetPassword)
 		user.GET("/profile/wallet", middlewares.UserAuth(), c.WalletBalance)

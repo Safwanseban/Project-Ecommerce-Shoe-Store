@@ -34,6 +34,7 @@ func UserAuth() gin.HandlerFunc{
 		}
 		err= auth.ValidateToken(tokenString)
 		context.Set("user",auth.P)
+		// context.Set("totalcartvalue",controllers.t)
 		if err != nil {
 			context.JSON(401, gin.H{"error": err.Error()})
 			context.Abort()
