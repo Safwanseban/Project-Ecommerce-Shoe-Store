@@ -20,6 +20,7 @@ type Orderd_Items []struct {
 	Order_Status   string
 	Payment_Status string
 	PaymentMethod  string
+	Applied_Coupons    string
 	Total_amount   uint
 }
 
@@ -37,7 +38,7 @@ func ViewOrders(c *gin.Context) {
 	var ordered_items Orderd_Items
 	userEmail := c.GetString("user")
 	initializers.DB.Raw("select id from users where email=?", userEmail).Scan(&user)
-	record := initializers.DB.Raw("select user_id,product_id,product_name,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where user_id =?", user.ID).Scan(&ordered_items)
+	record := initializers.DB.Raw("select user_id,product_id,product_name,applied_coupons,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where user_id =?", user.ID).Scan(&ordered_items)
 	if record.Error != nil {
 		c.JSON(404, gin.H{"err": record.Error.Error()})
 		c.Abort()

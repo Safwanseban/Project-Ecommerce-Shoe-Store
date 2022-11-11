@@ -165,7 +165,6 @@ var Address []struct {
 	City         string
 }
 
-
 func Checkout(c *gin.Context) {
 	var user models.User
 	var cart models.Cart
@@ -190,49 +189,15 @@ func Checkout(c *gin.Context) {
 	cod := "COD"
 	razorpay := "Razorpay"
 	notcompRazorpay := "Needs to complete razorpay payment"
-	//getting total cart value
+
 	i.DB.Raw("select sum(total_price) as total from carts where user_id=?", user.ID).Scan(&totalcartvalue)
-
-	if PaymentMethod == cod || PaymentMethod == razorpay {
-		for _, l := range carts {
-			fmt.Println("entered into carts")
-			pud := l.User_id
-			Puid, _ := strconv.Atoi(pud)
-			pid := l.Product_id
-			Piid, _ := strconv.Atoi(pid)
-			pname := l.Product_Name
-			pprice := l.Price
-			pPrice, _ := strconv.Atoi(pprice)
-			pquantity := l.Quantity
-			pQuantity, _ := strconv.Atoi(pquantity)
-
-			ordereditems := models.Orderd_Items{UserId: uint(Puid), Product_id: uint(Piid),
-				Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
-				Order_Status: "confirmed", Payment_Status: "pending", Total_amount: uint(pQuantity) * uint(pPrice),
-			}
-			i.DB.Create(&ordereditems)
-
-		}
-	}
-
-	//getting details from address
-	record := i.DB.Raw("select address_id, user_id,name,phone_number,pincode,house,area,landmark,city from addresses where user_id=?", user.ID).Scan(&Address)
-	if record.Error != nil {
-		c.JSON(404, gin.H{
-			"err": record.Error.Error(),
-		})
-		c.Abort()
-		return
-	}
-
-	i.DB.Raw("select address_id,user_id,name from addresses where address_id=?", addressID).Scan(&address)
-
 	// coupon section
 
 	var Coupondisc struct {
-		Discount uint
-		Count    uint
-		Validity int64
+		Coupon_Code string
+		Discount    uint
+		Count       uint
+		Validity    int64
 	}
 	var Appliedcoup struct {
 		User_Id     uint
@@ -248,7 +213,7 @@ func Checkout(c *gin.Context) {
 
 	} else if Coupons != "" {
 		flag = 1
-		i.DB.Raw("select discount,validity,count(*) as count from coupons  where coupon_code=? group by discount,validity", Coupons).Scan(&Coupondisc)
+		i.DB.Raw("select coupon_code ,discount,validity,count(*) as count from coupons  where coupon_code=? group by discount,validity,coupon_code", Coupons).Scan(&Coupondisc)
 		i.DB.Raw("select user_id,coupon_code,count(*) from applied_coupons where coupon_code=? and user_id=? group by user_id,coupon_code", Coupons, user.ID).Scan(&Appliedcoup)
 		if Appliedcoup.Count > 0 {
 			c.JSON(300, gin.H{
@@ -278,11 +243,51 @@ func Checkout(c *gin.Context) {
 
 	}
 	if flag == 1 {
-		fmt.Println("hai")
+
 		Discount := (totalcartvalue * Coupondisc.Discount) / 100
 		totalcartvalue = totalcartvalue - Discount
 
 	}
+
+	//getting total cart value
+
+	if PaymentMethod == cod || PaymentMethod == razorpay {
+		for _, l := range carts {
+			fmt.Println("entered into carts")
+			pud := l.User_id
+			Puid, _ := strconv.Atoi(pud)
+			pid := l.Product_id
+			Piid, _ := strconv.Atoi(pid)
+			pname := l.Product_Name
+			pprice := l.Price
+			pPrice, _ := strconv.Atoi(pprice)
+			pquantity := l.Quantity
+			pQuantity, _ := strconv.Atoi(pquantity)
+			appliedcoupon := Coupondisc.Coupon_Code
+			totamount := uint(pQuantity) * uint(pPrice)
+			Discount := (totamount * Coupondisc.Discount) / 100
+			totamount = totamount - Discount
+			ordereditems := models.Orderd_Items{UserId: uint(Puid), Product_id: uint(Piid),
+				Product_Name: pname, Price: pprice, OrdersID: CreateOrderId(),
+				Applied_Coupons: appliedcoupon,
+				Order_Status:    "confirmed", Payment_Status: "pending", Total_amount: totamount,
+			}
+			i.DB.Create(&ordereditems)
+
+		}
+	}
+
+	//getting details from address
+	record := i.DB.Raw("select address_id, user_id,name,phone_number,pincode,house,area,landmark,city from addresses where user_id=?", user.ID).Scan(&Address)
+	if record.Error != nil {
+		c.JSON(404, gin.H{
+			"err": record.Error.Error(),
+		})
+		c.Abort()
+		return
+	}
+
+	i.DB.Raw("select address_id,user_id,name from addresses where address_id=?", addressID).Scan(&address)
 
 	c.JSON(300, gin.H{
 		"address":          Address,
@@ -334,7 +339,7 @@ func Checkout(c *gin.Context) {
 		}
 
 	} else if PaymentMethod == razorpay && addressID == int(address.Address_id) && address.UserId == user.ID {
-	
+
 		orders := models.Orders{
 			UserId:          user.ID,
 			Address_id:      uint(addressID),
@@ -353,8 +358,6 @@ func Checkout(c *gin.Context) {
 			return
 
 		}
-
-
 
 		var ordereditems models.Orderd_Items
 

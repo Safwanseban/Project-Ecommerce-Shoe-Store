@@ -149,6 +149,7 @@ type Orderd_Items struct {
 	Order_Status   string
 	Payment_Status string
 	PaymentMethod  string
+	Applied_Coupons string
 	Total_amount   uint
 }
 type RazorPay struct {
