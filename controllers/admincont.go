@@ -6,6 +6,7 @@ import (
 
 	"github.com/Safwanseban/Project-Ecommerce/auth"
 	"github.com/Safwanseban/Project-Ecommerce/initializers"
+
 	i "github.com/Safwanseban/Project-Ecommerce/initializers"
 	"github.com/Safwanseban/Project-Ecommerce/models"
 	"github.com/gin-gonic/gin"
@@ -109,7 +110,7 @@ func UnBlockUser(c *gin.Context) {
 func AdminShowOrders(c *gin.Context) {
 
 	var ordered_items Orderd_Items
-	record := i.DB.Raw("select user_id,product_id,product_name,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
+	record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
 	if record.Error != nil {
 		c.JSON(404, gin.H{"err": record.Error.Error()})
 		c.Abort()
