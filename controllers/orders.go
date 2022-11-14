@@ -12,16 +12,16 @@ import (
 )
 
 type Orderd_Items []struct {
-	UserId         uint
-	Product_id     uint
-	OrdersID       string
-	Product_Name   string
-	Price          string
-	Order_Status   string
-	Payment_Status string
-	PaymentMethod  string
-	Applied_Coupons    string
-	Total_amount   uint
+	UserId          uint
+	Product_id      uint
+	OrdersID        string
+	Product_Name    string
+	Price           string
+	Order_Status    string
+	Payment_Status  string
+	PaymentMethod   string
+	Applied_Coupons string
+	Total_amount    uint
 }
 
 func CreateOrderId() string {
@@ -39,6 +39,16 @@ func ViewOrders(c *gin.Context) {
 	userEmail := c.GetString("user")
 	initializers.DB.Raw("select id from users where email=?", userEmail).Scan(&user)
 	record := initializers.DB.Raw("select user_id,product_id,product_name,applied_coupons,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where user_id =?", user.ID).Scan(&ordered_items)
+	if search := c.Query("search"); search != "" {
+
+		record := initializers.DB.Raw("select user_id,product_id,product_name,applied_coupons,price,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where (product_name ilike ? or payment_method ilike ? )and user_id=? ", "%"+search+"%", "%"+search+"%", user.ID).Scan(&ordered_items)
+		if record.Error != nil {
+			c.JSON(404, gin.H{"err": record.Error.Error()})
+			c.Abort()
+			return
+		}
+	}
+
 	if record.Error != nil {
 		c.JSON(404, gin.H{"err": record.Error.Error()})
 		c.Abort()

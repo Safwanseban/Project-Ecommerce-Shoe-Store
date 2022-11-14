@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Safwanseban/Project-Ecommerce/initializers"
+	i "github.com/Safwanseban/Project-Ecommerce/initializers"
 	"github.com/Safwanseban/Project-Ecommerce/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -33,9 +34,44 @@ func ListingAllCat(c *gin.Context) {
 	var brandss []models.Brand
 	var catogorry []models.Catogory
 	var shoesizess []models.ShoeSize
-	initializers.DB.Find(&brandss)
-	initializers.DB.Find(&catogorry)
-	initializers.DB.Find(&shoesizess)
+
+	brands := i.DB.Find(&brandss)
+
+	if brandsearch := c.Query("brandsearch"); brandsearch != "" {
+		brands := i.DB.Where("brands LIKE ?", "%"+brandsearch+"%").Find(&brandss)
+		if brands.Error != nil {
+			c.JSON(404, gin.H{
+				"err": brands.Error.Error(),
+			})
+			c.Abort()
+			return
+		}
+	}
+
+	catogory := i.DB.Find(&catogorry)
+
+	if catogorysearch := c.Query("catogorysearch"); catogorysearch != "" {
+		catogory = i.DB.Where("catogory LIKE ?", "%"+catogorysearch+"%").Find(&catogorry)
+		if catogory.Error != nil {
+			c.JSON(404, gin.H{
+				"err": brands.Error.Error(),
+			})
+			c.Abort()
+			return
+		}
+	}
+	size := initializers.DB.Find(&shoesizess)
+	if sizesearch := c.Query("sizesearch"); sizesearch != "" {
+		sizes, _ := strconv.Atoi(sizesearch)
+		size = i.DB.Where("size = ?", sizes).Find(&shoesizess)
+		if size.Error != nil {
+			c.JSON(404, gin.H{
+				"err": brands.Error.Error(),
+			})
+			c.Abort()
+			return
+		}
+	}
 
 	c.JSON(200, gin.H{
 		"available brands":     brandss,
@@ -212,7 +248,30 @@ func DeleteProductById(c *gin.Context) { //admin
 	c.JSON(200, gin.H{"msg": "deleted successfully"})
 }
 
+func TestProductsView(c *gin.Context) {
+
+	// i.DB.Joins("join brands on products.brand_id = brands.id ").Joins("join catogories on products.catogory_id=catogories.id").Joins("join shoe_sizes on products.shoe_size_id=shoe_sizes.id").Scan(&Products)
+	record := i.DB.Raw("SELECT product_id,product_name,actual_price,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id").Scan(&Products)
+	fmt.Println(record)
+
+	if s := c.Query("search"); s != "" { //search
+		i.DB.Raw("SELECT product_id,product_name,actual_price,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id where product_name like ?", "%"+s+"%").Scan(&Products)
+
+	}
+	if sort := c.Query("sort"); sort != "" { //sort
+		i.DB.Raw("SELECT product_id,product_name,actual_price,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id  order by price ?", sort).Scan(&Products)
+	}
+	c.JSON(200, gin.H{
+		"products": Products,
+	})
+}
+
 func ProductsView(c *gin.Context) { //user
+	brandFilter := c.Query("brandFilter")
+	catogoryFilter := c.Query("catogoryFilter")
+	sizefilter := c.Query("sizeFilter")
+	sizeFilter, _ := strconv.Atoi(sizefilter)
+
 	sql := "SELECT product_id,product_name,actual_price,price,image,color,description,sub_pic1,sub_pic2,stock,brands.brands,catogories.catogory,shoe_sizes.size FROM products join brands on products.brand_id = brands.id join catogories on products.catogory_id=catogories.id join shoe_sizes on products.shoe_size_id=shoe_sizes.id"
 	if s := c.Query("s"); s != "" { //search
 		sql = fmt.Sprintf("%s WHERE product_name like'%%%s%%'", sql, s)
@@ -223,6 +282,25 @@ func ProductsView(c *gin.Context) { //user
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	perPage := 5
 	var total int64
+	fmt.Println(sizeFilter)
+
+	if brandFilter == "" && catogoryFilter == "" && sizefilter == "" {
+		sql = fmt.Sprintf("%s ", sql)
+	} else if brandFilter != "" && catogoryFilter != "" && sizefilter == "" {
+		sql = fmt.Sprintf("%s where (brands='%s' and catogory='%s')", sql, brandFilter, catogoryFilter)
+	} else if brandFilter != "" && catogoryFilter != "" && sizefilter != "" {
+		sql = fmt.Sprintf("%s where (brands='%s' and catogory='%s' and size=%d)", sql, brandFilter, catogoryFilter, sizeFilter)
+	} else if brandFilter != "" && catogoryFilter == "" && sizefilter != "" {
+		sql = fmt.Sprintf("%s where (brands='%s'  and size=%d)", sql, brandFilter, sizeFilter)
+	} else if brandFilter == "" && catogoryFilter != "" && sizefilter != "" {
+		sql = fmt.Sprintf("%s where (catogory='%s'  and size=%d)", sql, catogoryFilter, sizeFilter)
+	} else if brandFilter != "" && catogoryFilter == "" && sizefilter == "" {
+		sql = fmt.Sprintf("%s where brands='%s'", sql, brandFilter)
+	} else if brandFilter == "" && catogoryFilter != "" && sizefilter == "" {
+		sql = fmt.Sprintf("%s where catogory='%s'", sql, catogoryFilter)
+	} else if brandFilter == "" && catogoryFilter == "" && sizefilter != "" {
+		sql = fmt.Sprintf("%s where size=%d", sql, sizeFilter)
+	}
 
 	initializers.DB.Raw(sql).Count(&total)
 

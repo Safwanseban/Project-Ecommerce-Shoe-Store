@@ -40,4 +40,5 @@ func UserRoutes(ctx *gin.Engine) {
 	ctx.GET("/products/:id", c.GetProductByID)
 	ctx.GET("/payment-success", middlewares.UserAuth(), c.RazorpaySuccess)
 	ctx.GET("/success", c.Success)
+	ctx.GET("/testproduct", c.TestProductsView)
 }

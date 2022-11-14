@@ -93,6 +93,10 @@ func Userdata(c *gin.Context) {
 
 	var user Userdet
 	i.DB.Raw("SELECT id,first_name,last_name,email,phone,block_status,country,city,pincode FROM users ORDER BY id ASC").Scan(&user)
+	if search := c.Query("search"); search != "" {
+		i.DB.Raw("SELECT id,first_name,last_name,email,phone,block_status,country,city,pincode FROM users where first_name like ? ORDER BY id ASC ", search).Scan(&user)
+	}
+
 	c.JSON(200, gin.H{"user": user})
 }
 func BlockUser(c *gin.Context) {
@@ -111,6 +115,15 @@ func AdminShowOrders(c *gin.Context) {
 
 	var ordered_items Orderd_Items
 	record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
+	if search := c.Query("search"); search != "" {
+		record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where  (product_name ilike ? or payment_method ilike ?)","%"+ search+"%","%"+ search+"%").Scan(&ordered_items)
+		if record.Error != nil {
+			c.JSON(404, gin.H{"err": record.Error.Error()})
+			c.Abort()
+			return
+		}
+	}
+
 	if record.Error != nil {
 		c.JSON(404, gin.H{"err": record.Error.Error()})
 		c.Abort()
@@ -130,11 +143,11 @@ func AdminChangeOrderStatus(c *gin.Context) {
 			"err": err.Error(),
 		})
 	}
-	record:=initializers.DB.Model(&models.Orderd_Items{}).Where("orders_id = ?", Order_status.Order_Id).Update("order_status", Order_status.Order_Status)
-	if record.Error==nil{
-		c.JSON(200,gin.H{
-			"order_status":Order_status.Order_Status,
-			"msg":"order status have been successfully changed",
+	record := initializers.DB.Model(&models.Orderd_Items{}).Where("orders_id = ?", Order_status.Order_Id).Update("order_status", Order_status.Order_Status)
+	if record.Error == nil {
+		c.JSON(200, gin.H{
+			"order_status": Order_status.Order_Status,
+			"msg":          "order status have been successfully changed",
 		})
 	}
 
