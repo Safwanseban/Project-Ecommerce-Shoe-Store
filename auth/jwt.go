@@ -16,7 +16,7 @@ type JWTClaim struct {
 	jwt.StandardClaims
 }
 
-func GenerateJWT(email string) (tokenString string, ex int64, err error) {
+func GenerateJWT(email string) (map[string]string, error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 	claims := &JWTClaim{
 		Email: email,
@@ -26,9 +26,24 @@ func GenerateJWT(email string) (tokenString string, ex int64, err error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err = token.SignedString(JwtKey)
-	ex = claims.ExpiresAt
-	return
+	tokenString, err := token.SignedString(JwtKey)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken := jwt.New(jwt.SigningMethodHS256)
+	rtClaims := refreshToken.Claims.(jwt.MapClaims)
+	rtClaims["sub"] = 1
+	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	rt, err := refreshToken.SignedString([]byte("secret"))
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{
+		"access_token":  tokenString,
+		"refresh_token": rt,
+	}, nil
+
 }
 
 var P string

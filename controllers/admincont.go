@@ -34,8 +34,11 @@ func AdminLogin(c *gin.Context) { // admin login page post
 
 	if UserDb["email"] == u.Email && UserDb["password"] == u.Password && c.Request.Method == "POST" {
 
-		tokenstring, ex, err := auth.GenerateJWT(u.Email) //generating a jwt
-		c.SetCookie("Adminjwt", tokenstring, 3600*24*30, "", "", false, true)
+		tokenstring,  err := auth.GenerateJWT(u.Email) //generating a jwt
+		token:=tokenstring["access_token"]	
+		c.SetCookie("Adminjwt", token, 3600*24*30, "", "", false, true)
+	
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			c.Abort()
@@ -45,7 +48,7 @@ func AdminLogin(c *gin.Context) { // admin login page post
 			"status":      true,
 			"message":     "ok",
 			"tokenstring": tokenstring,
-			"expiresAt":   ex,
+		
 		})
 
 	} else {

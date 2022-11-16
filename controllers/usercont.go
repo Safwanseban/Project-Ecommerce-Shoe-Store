@@ -72,16 +72,18 @@ func LoginUser(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	tokenString, ex, err := auth.GenerateJWT(user.Email)
+	tokenString, err := auth.GenerateJWT(user.Email)
+	fmt.Println(tokenString)
+	token:=tokenString["access_token"]	
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("UserAuth", tokenString, 3600*24*30, "", "", false, true)
+	c.SetCookie("UserAuth", token, 3600*24*30, "", "", false, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 
-	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString, "expiresAt": ex})
+	c.JSON(200, gin.H{"email": ulogin.Email, "password": ulogin.Password, "token": tokenString,})
 }
 func UserHome(c *gin.Context) {
 	c.JSON(200, gin.H{"msg": "welcome User Home"})

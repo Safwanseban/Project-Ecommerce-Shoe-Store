@@ -110,7 +110,7 @@ func CheckOtp(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 	} else if *resp.Status == "approved" {
-		tokenstring, ex, err := auth.GenerateJWT(user.Email)
+		tokenstring,  err := auth.GenerateJWT(user.Email)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Failed to create token",
@@ -119,17 +119,19 @@ func CheckOtp(c *gin.Context) {
 			return
 		}
 		// Sent it back
+		fmt.Println(tokenstring)
+		token:=tokenstring["access_token"]	
 		c.SetSameSite(http.SameSiteLaxMode)
-		c.SetCookie("UserAuth", tokenstring, 3600*24*30, "", "", false, true)
+		c.SetCookie("UserAuth", token, 3600*24*30, "", "", false, true)
 
 		c.JSON(http.StatusOK, gin.H{
 			"status":    true,
 			"message":   "ok",
 			"data":      tokenstring,
-			"expiresAt": ex,
+
 		})
 	} else {
-
+		
 		c.JSON(404, gin.H{
 			"msg": "otp is invalid",
 		})
