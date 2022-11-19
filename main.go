@@ -9,6 +9,7 @@ import (
 func init() {
 	i.ConnecttoDb()
 	R.LoadHTMLGlob("templates/*.html")
+	R.LoadHTMLFiles("")
 	i.Getenv()
 
 }

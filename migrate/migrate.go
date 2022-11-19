@@ -12,9 +12,10 @@ func init() {
 func main() {
 	initializers.DB.AutoMigrate(
 		&models.User{},
-		&models.Cart{},
+
 		&models.Address{},
 		&models.Product{},
+		&models.Cart{},
 		&models.Brand{},
 		&models.Otp{},
 		&models.Orders{},

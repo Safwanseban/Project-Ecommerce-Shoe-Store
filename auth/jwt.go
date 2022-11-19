@@ -32,7 +32,7 @@ func GenerateJWT(email string) (map[string]string, error) {
 	}
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
-	rtClaims["sub"] = 1
+	rtClaims["email"] = email
 	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	rt, err := refreshToken.SignedString([]byte("secret"))
