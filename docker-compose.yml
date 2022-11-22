@@ -8,10 +8,15 @@ services:
     restart: on-failure
     volumes:
       - api:/usr/src/app/
+
     depends_on:
       - fullstack-postgres          
     networks:
       - fullstack
+    command: sh -c "/wait && ./main" 
+    environment:
+      - WAIT_HOSTS=fullstack-postgres:5432
+      
 
 
   fullstack-postgres:
