@@ -33,7 +33,26 @@ type User struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
+type Admin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
+func (admin *Admin) HashPassword(password string) error {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		return err
+	}
+	admin.Password = string(bytes)
+	return nil
+}
+func (admin *Admin) CheckPassword(providedPassword string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(providedPassword))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (user *User) HashPassword(password string) error {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
@@ -141,16 +160,16 @@ type Orders struct {
 }
 type Orderd_Items struct {
 	gorm.Model
-	UserId         uint `json:"user_id"  gorm:"not null" `
-	Product_id     uint
-	OrdersID       string
-	Product_Name   string
-	Price          string
-	Order_Status   string
-	Payment_Status string
-	PaymentMethod  string
+	UserId          uint `json:"user_id"  gorm:"not null" `
+	Product_id      uint
+	OrdersID        string
+	Product_Name    string
+	Price           string
+	Order_Status    string
+	Payment_Status  string
+	PaymentMethod   string
 	Applied_Coupons string
-	Total_amount   uint
+	Total_amount    uint
 }
 type RazorPay struct {
 	UserID          uint

@@ -9,6 +9,7 @@ import (
 func AdminRooutes(ctx *gin.Engine) {
 	admin := ctx.Group("/admin")
 	{
+		admin.POST("/signup", c.AdminSignup)
 		admin.POST("/login", c.AdminLogin)
 		admin.GET("/home", middlewares.AdminAuth(), c.AdminHome)
 		// admin.GET("/logout", c.AdminLogout)

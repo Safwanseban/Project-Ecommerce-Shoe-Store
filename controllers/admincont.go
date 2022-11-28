@@ -22,38 +22,80 @@ var UserDb = map[string]string{
 	"password": "safwan",
 }
 
+func AdminSignup(c *gin.Context) {
+	var admin models.Admin
+	var count uint
+	if err := c.ShouldBindJSON(&admin); err != nil {
+		c.JSON(404, gin.H{
+			"err": err.Error(),
+		})
+		c.Abort()
+		return
+	}
+
+	i.DB.Raw("select count(*) from admins where email=?", admin.Email).Scan(&count)
+	if count > 0 {
+		c.JSON(400, gin.H{
+			"status": "false",
+			"msg":    "an admin with same email already exists",
+		})
+		c.Abort()
+		return
+	}
+	if err := admin.HashPassword(admin.Password); err != nil {
+		c.JSON(404, gin.H{
+			"error": err.Error(),
+		})
+	}
+	record := i.DB.Create(&admin)
+	if record.Error != nil {
+		c.JSON(400, gin.H{
+			"err": record.Error.Error(),
+		})
+	}
+	c.JSON(200, gin.H{
+		"status": "ok",
+		"msg":    "new admin created",
+	})
+}
 func AdminLogin(c *gin.Context) { // admin login page post
 	var u AdminLogins
-
+	var admin models.Admin
 	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(404, gin.H{"error": err.Error()})
 
 		c.Abort()
 		return
 	}
-
-	if UserDb["email"] == u.Email && UserDb["password"] == u.Password && c.Request.Method == "POST" {
-
-		tokenstring,  err := auth.GenerateJWT(u.Email) //generating a jwt
-		token:=tokenstring["access_token"]	
-		c.SetCookie("Adminjwt", token, 3600*24*30, "", "", false, true)
-	
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":      true,
-			"message":     "ok",
-			"tokenstring": tokenstring,
-		
-		})
-
-	} else {
-		c.JSON(400, gin.H{"msg": "error login"})
+	record := initializers.DB.Raw("select * from admins where email=?", u.Email).Scan(&admin)
+	if record.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": record.Error.Error()})
+		c.Abort()
+		return
 	}
+	credentialcheck := admin.CheckPassword(u.Password)
+	if credentialcheck != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		c.Abort()
+		return
+	}
+
+	tokenstring, err := auth.GenerateJWT(u.Email) //generating a jwt
+
+	token := tokenstring["access_token"]
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Adminjwt", token, 3600*24*30, "", "", false, true)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":      true,
+		"message":     "ok",
+		"tokenstring": tokenstring,
+	})
 
 }
 
@@ -119,7 +161,7 @@ func AdminShowOrders(c *gin.Context) {
 	var ordered_items Orderd_Items
 	record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items ").Scan(&ordered_items)
 	if search := c.Query("search"); search != "" {
-		record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where  (product_name ilike ? or payment_method ilike ?)","%"+ search+"%","%"+ search+"%").Scan(&ordered_items)
+		record := i.DB.Raw("select user_id,product_id,product_name,price,applied_coupons,orders_id,order_status,payment_status,payment_method,total_amount from orderd_items where  (product_name ilike ? or payment_method ilike ?)", "%"+search+"%", "%"+search+"%").Scan(&ordered_items)
 		if record.Error != nil {
 			c.JSON(404, gin.H{"err": record.Error.Error()})
 			c.Abort()

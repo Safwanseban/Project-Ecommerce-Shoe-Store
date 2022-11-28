@@ -29,7 +29,7 @@ func ConnecttoDb() {
 	}
 	DB.AutoMigrate(
 		&models.User{},
-
+		&models.Admin{},
 		&models.Address{},
 		&models.Product{},
 		&models.Cart{},
