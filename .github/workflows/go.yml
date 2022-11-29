@@ -46,7 +46,7 @@ jobs:
         which migrate
 
     - name: Run migrations
-      run: make migrateup
+      run: makefile migrateup
 
     - name: Build
       run: go build -v ./...
