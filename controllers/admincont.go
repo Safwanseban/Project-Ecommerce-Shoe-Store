@@ -12,6 +12,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ShowAccount godoc
+//
+//	@Summary		Show an account
+//	@Description	get string by ID
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"Account ID"
+//	@Success		200	{object}	model.Account
+//	@Failure		400	{object}	httputil.HTTPError
+//	@Failure		404	{object}	httputil.HTTPError
+//	@Failure		500	{object}	httputil.HTTPError
+//	@Router			/accounts/{id} [get]
 type AdminLogins struct {
 	Email    string
 	Password string
@@ -22,6 +35,16 @@ var UserDb = map[string]string{
 	"password": "safwan",
 }
 
+// AdminSignup godoc
+//	
+//	@Summary		Show an account
+//	@Description	get string by ID
+//	@Tags			admin/signup
+//	@Accept			json
+//	@Produce		json
+//
+//	@Success		200	{object}	models.Admin
+//	@Router			/admin/signup [post]
 func AdminSignup(c *gin.Context) {
 	var admin models.Admin
 	var count uint

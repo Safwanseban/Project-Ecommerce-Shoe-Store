@@ -1,0 +1,27 @@
+definitions:
+  models.Admin:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+      summary: Show an account
+      tags:
+      - admin/signup
+swagger: "2.0"
