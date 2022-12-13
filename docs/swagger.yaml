@@ -9,7 +9,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /admin/signup:
+  /admin/login:
     post:
       consumes:
       - application/json
@@ -21,7 +21,29 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Admin'
-      summary: Show an account
+      summary: API to Login for admins
       tags:
-      - admin/signup
+      - admin
+  /admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Account ID
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/models.Admin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+      summary: API to signup for admins
+      tags:
+      - admin
 swagger: "2.0"

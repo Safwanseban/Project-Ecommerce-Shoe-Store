@@ -1,0 +1,27 @@
+apiVersion: apps/v1 
+kind: Deployment                                  # Type of the kubernetes resource
+metadata:
+  name: fullstack-app-postgres                    # Name of the Kubernetes resource
+  labels:
+    app: fullstack-app-postgres
+spec:
+  replicas: 1                                     # Number of pods to run at any given time
+  selector:
+    matchLabels: 
+      app: fullstack-app-postgres                 # This deployment applies to any Pods matching the specified label
+  template:                                       # This deployment will create a set of pods using the configurations in this template
+    metadata:
+      labels:                                     # The labels that will be applied to all of the pods in this deployment
+        app: fullstack-app-postgres
+    spec:                                         # Spec for the container which will run in the Pod
+      containers:
+      - name: fullstack-app-postgres 
+        image: safwanseban/ecommerce:1.0.0      # The image we are getting from dockerhub
+        imagePullPolicy: IfNotPresent             # If we have not pulled it before, get it from dockerhub
+        ports:
+          - name: http
+            containerPort: 8080                   # Should match the port number that the Go application listens on
+        envFrom:
+          - secretRef:
+              name: postgres-secret               # Name of the secret environmental variable file to load
+        

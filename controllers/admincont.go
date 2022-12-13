@@ -19,11 +19,11 @@ import (
 //	@Tags			accounts
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int	true	"Account ID"
-//	@Success		200	{object}	model.Account
-//	@Failure		400	{object}	httputil.HTTPError
-//	@Failure		404	{object}	httputil.HTTPError
-//	@Failure		500	{object}	httputil.HTTPError
+//	@Param			admin	body		models.admin	true	"Account ID"
+//	@Success		200		{object}	model.Account
+//	@Failure		400		{object}	httputil.HTTPError
+//	@Failure		404		{object}	httputil.HTTPError
+//	@Failure		500		{object}	httputil.HTTPError
 //	@Router			/accounts/{id} [get]
 type AdminLogins struct {
 	Email    string
@@ -37,13 +37,13 @@ var UserDb = map[string]string{
 
 // AdminSignup godoc
 //	
-//	@Summary		Show an account
+//	@Summary		API to signup for admins
 //	@Description	get string by ID
-//	@Tags			admin/signup
+//	@Tags			admin
 //	@Accept			json
 //	@Produce		json
-//
-//	@Success		200	{object}	models.Admin
+//	@Param			admin	body		models.Admin	true	"Account ID"
+//	@Success		200		{object}	models.Admin
 //	@Router			/admin/signup [post]
 func AdminSignup(c *gin.Context) {
 	var admin models.Admin
@@ -81,6 +81,16 @@ func AdminSignup(c *gin.Context) {
 		"msg":    "new admin created",
 	})
 }
+// AdminLogin godoc
+//	
+//	@Summary		API to Login for admins
+//	@Description	get string by ID
+//	@Tags			admin
+//	@Accept			json
+//	@Produce		json
+//	@Param			admin	body		models.AdminLogins	true	"Account ID"
+//	@Success		200		{object}	AdminLogins
+//	@Router			/admin/login [post]
 func AdminLogin(c *gin.Context) { // admin login page post
 	var u AdminLogins
 	var admin models.Admin

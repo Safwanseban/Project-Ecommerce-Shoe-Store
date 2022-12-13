@@ -16,6 +16,29 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/login": {
+            "post": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "API to Login for admins",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Admin"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/signup": {
             "post": {
                 "description": "get string by ID",
@@ -26,9 +49,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin/signup"
+                    "admin"
                 ],
-                "summary": "Show an account",
+                "summary": "API to signup for admins",
+                "parameters": [
+                    {
+                        "description": "Account ID",
+                        "name": "admin",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Admin"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

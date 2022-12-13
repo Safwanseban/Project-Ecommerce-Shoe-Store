@@ -1,3 +1,4 @@
 .env
 /tmp
 .air.toml
+/kubernetis/postgres-secret.yaml
